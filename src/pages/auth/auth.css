@@ -1,0 +1,81 @@
+.whole-page {
+   width: 100%;
+   min-height: 100vh;
+   display: flex;
+   align-items: center;
+   padding: 2rem 0;
+   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.auth-box {
+   background: rgba(255, 255, 255, 0.95);
+   padding: 2.5rem;
+   border-radius: 20px;
+   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+   backdrop-filter: blur(10px);
+}
+
+.form-group {
+   position: relative;
+}
+
+.input-icon {
+   position: absolute;
+   left: 15px;
+   top: 50%;
+   transform: translateY(-50%);
+   color: #6c757d;
+   z-index: 2;
+}
+
+.form-control {
+   padding-left: 40px;
+   height: 50px;
+   border-radius: 10px;
+   border: 2px solid #e0e0e0;
+   transition: all 0.3s ease;
+   display: block;
+}
+
+.icon-more{
+   transform: translateY(-100%);
+}
+
+.form-control:focus {
+   border-color: #007bff;
+   box-shadow: none;
+}
+
+.auth-button {
+   padding: 12px;
+   border-radius: 10px;
+   font-weight: 600;
+   transition: all 0.3s ease;
+   background: linear-gradient(135deg, #007bff, #0062cc);
+   border: none;
+}
+
+.auth-button:hover {
+   background: linear-gradient(135deg, #0062cc, #005cbf);
+}
+
+.auth-links a {
+   color: #6c757d;
+   text-decoration: none;
+   transition: all 0.3s ease;
+}
+
+.auth-links a:hover {
+   color: #007bff;
+}
+
+.react-select__control {
+   border: 2px solid #e0e0e0 !important;
+   border-radius: 10px !important;
+   min-height: 50px !important;
+}
+
+.react-select__control--is-focused {
+   border-color: #007bff !important;
+   box-shadow: none !important;
+}
