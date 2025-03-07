@@ -4,31 +4,53 @@ import { Link } from 'react-router-dom';
 import { FaEnvelope, FaLock, FaArrowRight, FaUserPlus } from 'react-icons/fa';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import './auth.css'
+import { LoginApi } from '../../services/auth';
+import { useDispatch } from 'react-redux';
+import { AuthAction } from '../../redux/actions';
+import { useLocation, useNavigate } from 'react-router-dom';
+
 
 const Login = () => {
+   const dispatch = useDispatch()
    const [formData, setFormData] = useState({
       email: '',
       password: '',
       rememberMe: false,
    });
 
+   const navigate = useNavigate()
+
    const [errors, setErrors] = useState({});
+   const [responseError, setResponseError] = useState('');
    const [isSubmitting, setIsSubmitting] = useState(false);
 
    const handleSubmit = async (e) => {
       e.preventDefault();
+      setIsSubmitting(true);
       const validationErrors = validateForm();
-
-      if (Object.keys(validationErrors).length === 0) {
-         setIsSubmitting(true);
-         // Simulate API call
-         setTimeout(() => {
-            setIsSubmitting(false);
-            // Handle login success
-         }, 2000);
-      } else {
-         setErrors(validationErrors);
+      if (Object.keys(validationErrors).length > 0) {
+         setErrors(validationErrors)
+         setIsSubmitting(false)
+         return;
       }
+
+      try {
+         const response = await LoginApi({userEmail: formData.email, password: formData.password})
+
+         setIsSubmitting(false)
+         if (!response.success) {
+            setResponseError(response.message)
+         } else {
+            setResponseError('')
+            localStorage.setItem("token", response.token)
+            dispatch(AuthAction({token: response.token, info: response.user}))
+            navigate("/")
+         }
+      } catch (err) {
+         setIsSubmitting(false)
+         throw (err)
+      }
+
    };
 
    const validateForm = () => {
@@ -58,7 +80,7 @@ const Login = () => {
                      <Form onSubmit={handleSubmit}>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                            <Form.Group className="mb-3 form-group">
-                              <div className="input-icon">
+                              <div className={`input-icon ${errors.email && 'icon-more'}`}>
                                  <FaEnvelope />
                               </div>
                               <Form.Control
@@ -74,7 +96,7 @@ const Login = () => {
 
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
                            <Form.Group className="mb-3 form-group">
-                              <div className="input-icon">
+                              <div className={`input-icon ${errors.password && 'icon-more'}`}>
                                  <FaLock />
                               </div>
                               <Form.Control
@@ -114,6 +136,7 @@ const Login = () => {
                            </Button>
                         </motion.div>
 
+                        {responseError && responseError.length > 0 && <Form.Text className="text-danger" style={{textAlign: "center", display: "block"}}>{responseError}</Form.Text>}
                         <div className="text-center mt-4 auth-links">
                            <span className="text-muted">Don't have an account? </span>
                            <Link to="/register" className="text-primary text-decoration-none">
