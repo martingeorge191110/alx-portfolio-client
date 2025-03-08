@@ -1,50 +1,82 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Select from 'react-select';
 import { FaUser, FaEnvelope, FaLock, FaArrowRight, FaSignInAlt, FaCity } from 'react-icons/fa';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import './auth.css';
+import { RegisterApi } from '../../services/auth';
+import { useDispatch } from 'react-redux';
+import { AuthAction } from '../../redux/actions';
+import countries from 'world-countries';
 
 
 
-const countries = [
-   { value: 'us', label: 'United States' },
-   { value: 'ca', label: 'Canada' },
-];
+const countriesList = countries.map((country) => ({
+   label: country.name.common,
+   value: country.cca2,
+}));
 
 const Register = () => {
+
+   const dispatch = useDispatch()
    const [formData, setFormData] = useState({
-      firstName: '',
-      lastName: '',
+      f_n: '',
+      l_n: '',
       email: '',
       password: '',
-      confirmPassword: '',
+      confirm_password: '',
       nationality: '',
+      user_type: ''
    });
 
-   const [errors, setErrors] = useState({});
+   const navigate = useNavigate()
 
-   const handleSubmit = (e) => {
+   const [errors, setErrors] = useState({});
+   const [responseError, setResponseError] = useState('');
+   const [isSubmitting, setIsSubmitting] = useState(false)
+
+   const handleSubmit = async (e) => {
       e.preventDefault();
+      setIsSubmitting(true)
       const validationErrors = validateForm();
-      if (Object.keys(validationErrors).length === 0) {
-         // Submit form
-         console.log('Form submitted:', formData);
-      } else {
-         setErrors(validationErrors);
+      if (Object.keys(validationErrors).length > 0) {
+         setErrors(validationErrors)
+         setIsSubmitting(false)
+         return;
+      }
+
+      setErrors({})
+      try {
+         const response = await RegisterApi({f_n: formData.f_n, l_n: formData.l_n, email: formData.email, password: formData.password,
+            confirm_password: formData.confirm_password, nationality: formData.nationality['value'], user_type: formData.user_type['value']
+         })
+
+         console.log(response)
+         setIsSubmitting(false)
+         if (!response.success) {
+            setResponseError(response.message)
+         } else {
+            setResponseError('')
+            localStorage.setItem("token", response.token)
+            dispatch(AuthAction({token: response.token, info: response.user}))
+            navigate("/")
+         }
+      } catch (err) {
+         throw (err)
       }
    };
 
    const validateForm = () => {
       const errors = {};
-      if (!formData.firstName.trim()) errors.firstName = 'First name is required';
-      if (!formData.lastName.trim()) errors.lastName = 'Last name is required';
+      if (!formData.f_n.trim()) errors.f_n = 'First name is required';
+      if (!formData.l_n.trim()) errors.l_n = 'Last name is required';
       if (!formData.email.match(/^\S+@\S+\.\S+$/)) errors.email = 'Invalid email address';
       if (formData.password.length < 6) errors.password = 'Password must be at least 6 characters';
-      if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match';
+      if (formData.password !== formData.confirm_password) errors.confirm_password = 'Passwords do not match';
       if (!formData.nationality) errors.nationality = 'Nationality is required';
-      console.log(errors)
+      if (!formData.user_type) errors.user_type = 'Account type is required';
+
       return (errors);
    };
 
@@ -70,34 +102,34 @@ const Register = () => {
                            <Col md={6}>
                               <motion.div initial={{ x: -20 }} animate={{ x: 0 }}>
                                  <Form.Group className="mb-3 form-group">
-                                    <div className={`input-icon ${errors.firstName && 'icon-more'}`}>
+                                    <div className={`input-icon ${errors.f_n && 'icon-more'}`}>
                                        <FaUser />
                                     </div>
                                     <Form.Control
                                        type="text"
                                        placeholder="First Name"
-                                       value={formData.firstName}
-                                       onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                                       isInvalid={!!errors.firstName}
+                                       value={formData.f_n}
+                                       onChange={(e) => setFormData({ ...formData, f_n: e.target.value })}
+                                       isInvalid={!!errors.f_n}
                                     />
-                                    {errors.firstName && <Form.Text className="text-danger">{errors.firstName}</Form.Text>}
+                                    {errors.f_n && <Form.Text className="text-danger">{errors.f_n}</Form.Text>}
                                  </Form.Group>
                               </motion.div>
                            </Col>
                            <Col md={6}>
                               <motion.div initial={{ x: 20 }} animate={{ x: 0 }}>
                                  <Form.Group className="mb-3 form-group">
-                                    <div className={`input-icon ${errors.lastName && 'icon-more'}`}>
+                                    <div className={`input-icon ${errors.l_n && 'icon-more'}`}>
                                        <FaUser />
                                     </div>
                                     <Form.Control
                                        type="text"
                                        placeholder="Last Name"
-                                       value={formData.lastName}
-                                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                                       isInvalid={!!errors.lastName}
+                                       value={formData.l_n}
+                                       onChange={(e) => setFormData({ ...formData, l_n: e.target.value })}
+                                       isInvalid={!!errors.l_n}
                                     />
-                                    {errors.lastName && <Form.Text className="text-danger">{errors.lastName}</Form.Text>}
+                                    {errors.l_n && <Form.Text className="text-danger">{errors.l_n}</Form.Text>}
                                  </Form.Group>
                               </motion.div>
                            </Col>
@@ -123,7 +155,7 @@ const Register = () => {
                            <Col md={6}>
                               <motion.div initial={{ y: 10 }} animate={{ y: 0 }} transition={{ delay: 0.3 }}>
                                  <Form.Group className="mb-3 form-group">
-                                    <div className={`input-icon ${errors.password && 'icon-more'}`}>
+                                    <div className={`input-icon ${errors.password ? 'icon-more' : ''}`} style={{transform: `${errors.password ? 'translateY(-150%)' : ''}`}}>
                                        <FaLock />
                                     </div>
                                     <Form.Control
@@ -143,12 +175,12 @@ const Register = () => {
                                     <Form.Control
                                        type="password"
                                        placeholder="Confirm Password"
-                                       value={formData.confirmPassword}
-                                       onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                       isInvalid={!!errors.confirmPassword}
+                                       value={formData.confirm_password}
+                                       onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
+                                       isInvalid={!!errors.confirm_password}
                                     />
-                                    {errors.confirmPassword && (
-                                       <Form.Text className="text-danger">{errors.confirmPassword}</Form.Text>
+                                    {errors.confirm_password && (
+                                       <Form.Text className="text-danger">{errors.confirm_password}</Form.Text>
                                     )}
                                  </Form.Group>
                               </motion.div>
@@ -157,11 +189,11 @@ const Register = () => {
 
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
                            <Form.Group className="mb-4 form-group">
-                              <div className={`input-icon ${errors.nationality && 'icon-more'}`}>
+                              {/* <div className={`input-icon ${errors.nationality && 'icon-more'}`}>
                                  <FaCity />
-                              </div>
+                              </div> */}
                               <Select
-                                 options={countries}
+                                 options={countriesList}
                                  placeholder="Select Nationality"
                                  value={formData.nationality}
                                  onChange={(selected) => setFormData({ ...formData, nationality: selected })}
@@ -172,12 +204,32 @@ const Register = () => {
                            </Form.Group>
                         </motion.div>
 
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+                           <Form.Group className="mb-4 form-group">
+                              {/* <div className={`input-icon ${errors.nationality && 'icon-more'}`}>
+                                 <FaCity />
+                              </div> */}
+                              <Select
+                                 options={[{ value: 'Investor', label: 'Investor' },
+                                 { value: 'Business', label: 'Business' }]}
+                                 placeholder="Select your account type"
+                                 value={formData.user_type}
+                                 onChange={(selected) => setFormData({ ...formData, user_type: selected })}
+                                 classNamePrefix="react-select"
+                                 isInvalid={!!errors.user_type}
+                                 isSearchable={false}
+                              />
+                              {errors.user_type && <Form.Text className="text-danger">{errors.user_type}</Form.Text>}
+                           </Form.Group>
+                        </motion.div>
+
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                            <Button variant="primary" type="submit" className="w-100 mb-3 auth-button">
-                              Register <FaArrowRight className="ms-2" />
+                           {isSubmitting ? 'Registering...' : 'Register'} <FaArrowRight className="ms-2" />
                            </Button>
                         </motion.div>
 
+                        {responseError && responseError.length > 0 && <Form.Text className="text-danger" style={{textAlign: "center", display: "block"}}>{responseError}</Form.Text>}
                         <div className="text-center mt-4 auth-links">
                            <Link to="/login" className="d-block mb-2">
                               <FaSignInAlt className="me-2" />
