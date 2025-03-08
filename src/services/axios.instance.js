@@ -8,3 +8,8 @@ export const UserAuth = axios.create({
    baseURL: `${url}/api/auth/`,
    withCredentials: true
 })
+
+export const UserDataInfo = axios.create({
+   baseURL: `${url}/api/user/`,
+   withCredentials: true
+})

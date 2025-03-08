@@ -17,3 +17,19 @@ export const LoginApi = async ({userEmail, password}) => {
       return (err.response.data)
    }
 }
+
+export const RegisterApi = async ({f_n, l_n, email, password, confirm_password, user_type, nationality}) => {
+   try {
+      const response = await UserAuth.post("/register", {
+         f_n, l_n, email, password, confirm_password, nationality, user_type
+      },{
+         headers: {
+            "Content-Type": "application/json"
+         }
+      })
+
+      return (response.data)
+   } catch (err) {
+      return (err.response.data)
+   }
+}
