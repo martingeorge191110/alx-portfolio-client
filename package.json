@@ -23,6 +23,7 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^6.30.0",
     "react-select": "^5.10.1",
+    "recharts": "^2.15.1",
     "redux": "^5.0.1",
     "world-countries": "^5.1.0",
     "yup": "^1.6.1"
