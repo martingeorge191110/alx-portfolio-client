@@ -33,3 +33,20 @@ export const RegisterApi = async ({f_n, l_n, email, password, confirm_password, 
       return (err.response.data)
    }
 }
+
+
+export const SendCodeApi = async ({email}) => {
+   try {
+      const response = await UserAuth.post("/request-code", {
+         email
+      },{
+         headers: {
+            "Content-Type": "application/json"
+         }
+      })
+
+      return (response.data)
+   } catch (err) {
+      return (err.response.data)
+   }
+}

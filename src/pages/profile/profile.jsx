@@ -80,6 +80,7 @@ const Profile = () => {
          res => {
             setUserDetailes(res.user)
             setCompaniesList(res.companies)
+            console.log(res)
             if (res.user.user_type === "Investor")
                setDealsList(res.deals)
          }
