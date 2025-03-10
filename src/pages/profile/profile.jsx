@@ -7,7 +7,8 @@ import {
    FaRegClock, FaEdit, FaCamera, FaSave, FaTimes,
    FaIndustry, FaChartLine, FaMoneyCheckAlt, FaIdBadge, FaPlus,
    FaTimesCircle,
-   FaExclamationCircle
+   FaExclamationCircle,
+   FaCheck
 } from 'react-icons/fa';
 import { Container, Row, Col, Card, Form, Button, Badge, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import './profile.css';
@@ -15,6 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import LoadingPage from '../loading/loading.page';
 import { IsLoadingAction } from '../../redux/actions';
 import { UserProfileApi } from '../../services/user';
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -28,6 +30,7 @@ const profileSchema = Yup.object().shape({
 
 const Profile = () => {
 
+   const navigate = useNavigate()
 
    const token = useSelector(
       state => state.user.token
@@ -38,17 +41,21 @@ const Profile = () => {
    const [companiesList, setCompaniesList] = useState(null)
    const [dealsList, setDealsList] = useState(null)
 
-   const [user, setUser] = useState({
-      id: 'user-123',
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john@example.com',
-      nationality: 'United States',
-      avatar: 'https://via.placeholder.com/150',
-      userType: 'investor',
-      isPaid: true,
-      subscriptionEnd: '2025-12-31',
-   });
+   const [newImage, setNewImage] = useState(null);
+   const [isUploading, setIsUploading] = useState(false);
+   const [uploadError, setUploadError] = useState(null);
+
+   // const [user, setUser] = useState({
+   //    id: 'user-123',
+   //    firstName: 'John',
+   //    lastName: 'Doe',
+   //    email: 'john@example.com',
+   //    nationality: 'United States',
+   //    avatar: 'https://th.bing.com/th/id/OIP.nYjTZMgoAAgpLUBL5ooqWwHaHa?rs=1&pid=ImgDetMain',
+   //    userType: 'investor',
+   //    isPaid: true,
+   //    subscriptionEnd: '2025-12-31',
+   // });
 
    const [companies] = useState([
       {
@@ -80,7 +87,6 @@ const Profile = () => {
          res => {
             setUserDetailes(res.user)
             setCompaniesList(res.companies)
-            console.log(res)
             if (res.user.user_type === "Investor")
                setDealsList(res.deals)
          }
@@ -92,26 +98,43 @@ const Profile = () => {
       })
    }, [])
 
-
-   const [showEditModal, setShowEditModal] = useState(false);
    const [selectedFile, setSelectedFile] = useState(null);
+   const handleImageUpload = async (file) => {
+      if (!file) return;
 
-   const formik = useFormik({
-      initialValues: user,
-      validationSchema: profileSchema,
-      onSubmit: (values) => {
-         setUser({ ...values, avatar: selectedFile || user.avatar });
-         setShowEditModal(false);
-      },
-   });
+      try {
+         setIsUploading(true);
+         setUploadError(null);
 
-   const handleFileChange = (event) => {
-      const file = event.target.files[0];
-      if (file) {
-         const reader = new FileReader();
-         reader.onloadend = () => setSelectedFile(reader.result);
-         reader.readAsDataURL(file);
+         // Upload to backend
+         const formData = new FormData();
+         formData.append('avatar', file);
+
+         // const response = await fetch(`/api/companies/${company.id}/avatar`, {
+         //    method: 'PUT',
+         //    body: formData,
+         //    headers: {
+         //       'Authorization': `Bearer ${user.token}`
+         //    }
+         // });
+
+         // if (!response.ok) throw new Error('Upload failed');
+
+         // const data = await response.json();
+         setNewImage(null);
+         // Update company data in parent component
+         // company.avatar = data.newAvatarUrl;
+
+      } catch (error) {
+         setUploadError(error.message);
+      } finally {
+         setIsUploading(false);
       }
+   };
+
+   const handleCancelUpload = () => {
+      setNewImage(null);
+      setUploadError(null);
    };
 
    return (
@@ -132,33 +155,66 @@ const Profile = () => {
                   <Row className="align-items-center g-5">
                      <Col xl={3} className="text-center">
                         {userDetails &&
-                           <motion.div
-                              className="avatar-container"
-                              whileHover={{ scale: 1.05 }}
-                           >
-                              <img
-                                 src={selectedFile || userDetails.avatar}
-                                 alt="Profile"
-                                 className="profile-avatar"
+                           <motion.div className="avatar-edit-container">
+                              <motion.img
+                                 src={newImage || userDetails.avatar || 'https://th.bing.com/th/id/OIP.nYjTZMgoAAgpLUBL5ooqWwHaHa?rs=1&pid=ImgDetMain'}
+                                 alt={userDetails.f_n}
+                                 className="company-logo rounded-4 shadow-lg"
+                                 whileHover={{ rotate: -2 }}
                               />
-                              <OverlayTrigger
-                                 placement="bottom"
-                                 overlay={<Tooltip>Change Avatar</Tooltip>}
-                              >
-                                 <Button
-                                    variant="primary"
-                                    className="avatar-edit-btn"
-                                    onClick={() => document.getElementById('avatarInput').click()}
-                                 >
-                                    <FaEdit />
-                                 </Button>
-                              </OverlayTrigger>
-                              <input
-                                 type="file"
-                                 id="avatarInput"
-                                 hidden
-                                 onChange={handleFileChange}
-                              />
+
+                              {/* Upload Controls */}
+                              <div className="position-absolute bottom-0 end-0 mb-5 me-3">
+                                 {!newImage ? (
+                                    <motion.label
+                                       className="btn btn-icon rounded-circle p-2"
+                                       whileHover={{ scale: 1.1 }}
+                                       whileTap={{ scale: 0.9 }}
+                                    >
+                                       <FaCamera className="fs-5" />
+                                       <input
+                                          type="file"
+                                          accept="image/*"
+                                          hidden
+                                          onChange={(e) => {
+                                             const file = e.target.files[0];
+                                             if (file) setNewImage(URL.createObjectURL(file));
+                                          }}
+                                       />
+                                    </motion.label>
+                                 ) : (
+                                    <motion.div
+                                       className="d-flex gap-2"
+                                       initial={{ opacity: 0 }}
+                                       animate={{ opacity: 1 }}
+                                    >
+                                       <button
+                                          className="btn btn-success btn-sm px-3"
+                                          onClick={() => handleImageUpload(newImage)}
+                                          disabled={isUploading}
+                                       >
+                                          {isUploading ? (
+                                             <div className="spinner-border spinner-border-sm" />
+                                          ) : (
+                                             <><FaCheck className="me-1" /> Save</>
+                                          )}
+                                       </button>
+                                       <button
+                                          className="btn btn-danger btn-sm px-3"
+                                          onClick={handleCancelUpload}
+                                          disabled={isUploading}
+                                       >
+                                          <FaTimes className="me-1" /> Cancel
+                                       </button>
+                                    </motion.div>
+                                 )}
+                              </div>
+
+                              {uploadError && (
+                                 <Alert variant="danger" className="mt-2">
+                                    {uploadError}
+                                 </Alert>
+                              )}
                            </motion.div>
                         }
                      </Col>
@@ -174,22 +230,15 @@ const Profile = () => {
                                     </Badge>
                                  </motion.h1>
                               }
-                              <Button
-                                 variant="outline-primary"
-                                 onClick={() => setShowEditModal(true)}
-                              >
-                                 <FaEdit className="me-2" />
-                                 Edit Profile
-                              </Button>
                            </div>
 
                            <motion.div className="status-container mt-3">
                               <Badge bg={userDetails.paid ? 'success' : 'secondary'} className="me-2">
-                                 {user.paid ? 'Premium Member' : 'Free Tier'}
+                                 {userDetails.paid ? 'Premium Member' : 'Free Tier'}
                               </Badge>
                               <Badge bg="info">
                                  <FaRegClock className="me-2" />
-                                 {`${userDetails.paid ? 'subscription Ends: ' + user.subis_end_date : "No subscription"}`}
+                                 {`${userDetails.paid ? 'subscription Ends: ' + userDetails.subis_end_date : "No subscription"}`}
                               </Badge>
                               <Button variant="outline-primary" className="w-20 mt-2" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                  <FaPlus style={{ marginRight: "5px" }} />
@@ -213,19 +262,19 @@ const Profile = () => {
                      >
                         <Card className="h-100">
                            <Card.Body>
-                              <div className="detail-item">
+                              <div className="detail-item-card">
                                  <FaIdBadge className="detail-icon" />
                                  <h5>Nationality</h5>
                                  <p>{userDetails.nationality}</p>
                               </div>
 
-                              <div className="detail-item">
+                              <div className="detail-item-card">
                                  <FaEnvelope className="detail-icon" />
                                  <h5>Email</h5>
                                  <p>{userDetails.email}</p>
                               </div>
 
-                              <div className="detail-item">
+                              <div className="detail-item-card">
                                  <FaUser className="detail-icon" />
                                  <h5>Account Type</h5>
                                  <p>{userDetails.user_type}</p>
@@ -275,7 +324,9 @@ const Profile = () => {
                                                 <p><FaChartLine className="me-2" />{company.industry}</p>
                                                 <p><FaWallet className="me-2" />{company.valuation}</p>
                                              </div>
-                                             <Button variant="outline-primary" className="w-100 mt-2">
+                                             <Button
+                                                onClick={() => navigate(`/company/${company.id}`)}
+                                                variant="outline-primary" className="w-100 mt-2">
                                                 View Dashboard
                                              </Button>
                                           </Card.Body>
@@ -345,80 +396,6 @@ const Profile = () => {
                      </motion.div>
                   </Col>
                </Row>
-
-               {/* Edit Profile Modal */}
-               <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
-                  <Modal.Header closeButton>
-                     <Modal.Title>Edit Profile</Modal.Title>
-                  </Modal.Header>
-                  <Modal.Body>
-                     <Form onSubmit={formik.handleSubmit}>
-                        <Form.Group className="mb-3">
-                           <Form.Label>First Name</Form.Label>
-                           <Form.Control
-                              name="firstName"
-                              value={formik.values.firstName}
-                              onChange={formik.handleChange}
-                              isInvalid={formik.touched.firstName && !!formik.errors.firstName}
-                           />
-                           <Form.Control.Feedback type="invalid">
-                              {formik.errors.firstName}
-                           </Form.Control.Feedback>
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                           <Form.Label>Last Name</Form.Label>
-                           <Form.Control
-                              name="lastName"
-                              value={formik.values.lastName}
-                              onChange={formik.handleChange}
-                              isInvalid={formik.touched.lastName && !!formik.errors.lastName}
-                           />
-                           <Form.Control.Feedback type="invalid">
-                              {formik.errors.lastName}
-                           </Form.Control.Feedback>
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                           <Form.Label>Email</Form.Label>
-                           <Form.Control
-                              name="email"
-                              type="email"
-                              value={formik.values.email}
-                              onChange={formik.handleChange}
-                              isInvalid={formik.touched.email && !!formik.errors.email}
-                           />
-                           <Form.Control.Feedback type="invalid">
-                              {formik.errors.email}
-                           </Form.Control.Feedback>
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                           <Form.Label>Nationality</Form.Label>
-                           <Form.Control
-                              name="nationality"
-                              value={formik.values.nationality}
-                              onChange={formik.handleChange}
-                              isInvalid={formik.touched.nationality && !!formik.errors.nationality}
-                           />
-                           <Form.Control.Feedback type="invalid">
-                              {formik.errors.nationality}
-                           </Form.Control.Feedback>
-                        </Form.Group>
-
-                        <div className="d-flex justify-content-end gap-2 mt-4">
-                           <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-                              <FaTimes className="me-2" />
-                              Cancel
-                           </Button>
-                           <Button variant="primary" type="submit">
-                              <FaSave className="me-2" />
-                              Save Changes
-                           </Button>
-                        </div>
-                     </Form>
-                  </Modal.Body>
-               </Modal>
             </Container>
          </motion.div>
       }</>

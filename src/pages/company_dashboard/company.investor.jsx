@@ -17,11 +17,12 @@ import {
    FaHandshake,
    FaCertificate,
    FaClock,
-   FaPercent
+   FaPercent,
+   FaBalanceScale
 } from 'react-icons/fa';
 import { FiUsers, FiArrowUpRight, FiDownload } from 'react-icons/fi';
 import './company_dashboard.css';
-import { Badge } from 'react-bootstrap';
+import { AiOutlineStock } from 'react-icons/ai';
 
 const cardVariants = {
    hidden: { opacity: 0, y: 20 },
@@ -125,7 +126,9 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                      {[
                         { icon: FaIndustry, text: company.industry },
                         { icon: FaMapMarkerAlt, text: company.location },
-                        { icon: FaCalendarAlt, text: `Founded ${company.founder_year}` }
+                        { icon: FaCalendarAlt, text: `Founded ${company.founder_year}` },
+                        { icon: FaBalanceScale, text: `$${company.valuation / 1000000} Million` },
+                        { icon: AiOutlineStock, text: company.stock_market ? 'In Stock Market' : 'Is not in Stock Market' }
                      ].map((item, idx) => (
                         <motion.div
                            key={idx}

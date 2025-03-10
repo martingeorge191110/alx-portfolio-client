@@ -1,38 +1,28 @@
-import React, { useState } from "react";
+import React, { useLayoutEffect, useState } from "react";
 import CompanyDashboardInvestor from "./company.investor";
+import { useDispatch, useSelector } from "react-redux";
+import CompanyDashboardOwner from "./company.owner.jsx";
+import NotFoundPage from "../notfound_error/not.found.jsx";
+import { useLocation } from "react-router-dom";
+import LoadingPage from "../loading/loading.page.jsx";
+import { IsLoadingAction } from "../../redux/actions.js";
+import { CompanyBasicInfoApi } from "../../services/company.js";
 
 const CompanyDashboard = () => {
+
+   const token = useSelector(
+      state => state.user.token
+   )
+
+   const dispatch = useDispatch()
+
+   const location = useLocation();
+   const company_id = location.pathname.split('/')[2]
+   const [pageIsLoading, setPageIsLoading] = useState(true)
+   const [error, setError] = useState(false)
+
+   const [user, setUser] = useState({});
    const [company, setCompany] = useState({
-      id: "comp-12345",
-      name: "Tech Innovators Inc.",
-      description: "Leading provider of AI-powered business solutions",
-      contact_number: "+1 (555) 123-4567",
-      contact_email: "contact@techinnovators.com",
-      industry: "Artificial Intelligence",
-      location: "San Francisco, CA",
-      web_link: "https://techinnovators.com",
-      avatar: "https://via.placeholder.com/150",
-      stock_market: true,
-      founder_year: 2015,
-      valuation: "$2.5 Billion",
-      created_at: "2020-01-15T08:00:00Z",
-      updated_at: "2023-07-20T14:30:00Z",
-      owners: [
-         {
-            id: "owner-1",
-            f_n: "John",
-            l_n: "Smith",
-            avatar: "https://via.placeholder.com/80",
-            role: "CEO & Founder"
-         },
-         {
-            id: "owner-2",
-            f_n: "Sarah",
-            l_n: "Johnson",
-            avatar: "https://via.placeholder.com/80",
-            role: "CTO"
-         }
-      ],
       growthRates: [
          { year: 2020, profit: "1500000" },
          { year: 2021, profit: "3500000" },
@@ -81,21 +71,48 @@ const CompanyDashboard = () => {
       ]
    });
 
-   const [user, setUser] = useState({
-      id: "user-123",
-      f_n: "Alex",
-      l_n: "Johnson",
-      avatar: "https://via.placeholder.com/80",
-      paid: false,
-      isOwner: false,
-      email: "alex.johnson@example.com"
-   });
+   useLayoutEffect(() => {
+      dispatch(IsLoadingAction(true))
+      CompanyBasicInfoApi({token, company_id}).then(
+         res => {
+            console.log(res.data_result)
+            setCompany({...company, ...res.data_result.company, owners: res.data_result.owners})
+            setUser({...res.data_result.user, isOwner: res.data_result.isOwner})
+         }
+      ).catch(
+         rej => {
+            setError(true)
+            throw (rej)
+         }
+      ).finally(
+         () => {
+            dispatch(IsLoadingAction(false))
+            setPageIsLoading(false)
+         }
+      )
+   }, [])
+
 
    return (
-      <CompanyDashboardInvestor
-         company={company}
-         user={user}
-      />
+      <>
+         { pageIsLoading ?
+            <LoadingPage />
+            :
+            error ?
+            <NotFoundPage/>
+            :
+            user.isOwner ?
+            <CompanyDashboardOwner
+               company={company}
+               user={user}
+            />
+            :
+            <CompanyDashboardInvestor
+               company={company}
+               user={user}
+            />
+         }
+      </>
    );
 };
 
