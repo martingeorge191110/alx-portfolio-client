@@ -3,17 +3,26 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
    FaHome, FaInfoCircle, FaPhone, FaTags, FaUserPlus,
    FaSignInAlt, FaBars, FaTimes, FaUser, FaBell, FaCog,
-   FaSignOutAlt, FaEnvelope, FaRegBell
+   FaSignOutAlt, FaEnvelope, FaRegBell,
+   FaSearch
 } from 'react-icons/fa';
 import './nav_bar.css';
+import { useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Navbar = ({tokenValidation}) => {
+   const navigate = useNavigate()
+
    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
    const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
    const [isLoggedIn, setIsLoggedIn] = useState(false);
    const [notifications, setNotifications] = useState([]);
    const navbarRef = useRef(null);
+
+   const user = useSelector(
+      state => state.user.info
+   )
 
    // Check auth status on mount
    useEffect(() => {
@@ -23,16 +32,23 @@ const Navbar = ({tokenValidation}) => {
    const navItems = [
       { icon: <FaInfoCircle />, text: 'About', path: '/about' },
       { icon: <FaPhone />, text: 'Contact', path: '/contact' },
-      { icon: <FaTags />, text: 'Pricing', path: '/pricing' },
    ];
+
+   if (!user || !user.paid) {
+      navItems.push({ icon: <FaTags />, text: 'Pricing', path: '/pricing' })
+   }
+   if (tokenValidation) {
+      navItems.push({ icon: <FaSearch />, text: 'Company Search', path: '/company/search' })
+   }
 
    const profileItems = [
       { icon: <FaUser />, text: 'Profile', path: '/profile' },
       { icon: <FaCog />, text: 'Settings', path: '/settings' },
       {
          icon: <FaSignOutAlt />, text: 'Logout', path: '/logout', action: () => {
-            localStorage.removeItem('authToken');
+            localStorage.removeItem('token');
             setIsLoggedIn(false);
+            navigate('/')
          }
       },
    ];
@@ -94,10 +110,10 @@ const Navbar = ({tokenValidation}) => {
                         className="nav-item"
                         whileHover={{ scale: 1.05 }}
                      >
-                        <a className="nav-link" href={item.path}>
+                        <Link className="nav-link" to={item.path}>
                            <span className="nav-icon">{item.icon}</span>
                            {item.text}
-                        </a>
+                        </Link>
                      </motion.li>
                   ))}
 
@@ -176,7 +192,7 @@ const Navbar = ({tokenValidation}) => {
                                           <a
                                              href={item.path}
                                              className="d-flex align-items-center"
-                                             onClick={item.action}
+                                             onClick={() => item.action()}
                                           >
                                              <span className="me-2">{item.icon}</span>
                                              {item.text}
