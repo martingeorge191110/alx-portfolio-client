@@ -13,3 +13,8 @@ export const UserDataInfo = axios.create({
    baseURL: `${url}/api/user/`,
    withCredentials: true
 })
+
+export const CompanyDataInfo = axios.create({
+   baseURL: `${url}/api/company/`,
+   withCredentials: true
+})
