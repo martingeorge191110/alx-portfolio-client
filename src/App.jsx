@@ -1,4 +1,4 @@
-import { Route, Routes, Navigate } from 'react-router-dom';
+import { Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import Register from './pages/auth/register';
 import Login from './pages/auth/login';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,6 +20,7 @@ function App() {
     state => state.user.token
   )
 
+    const navigate = useNavigate()
     const [tokenValid, setTokenValid] = useState(false)
 
     const [isLoading, setIsLoading] = useState(true)
@@ -35,13 +36,19 @@ function App() {
             if (res.success) {
               dispatch(TokenValidAction(res.user))
               setTokenValid(true)
+            } else {
+              localStorage.removeItem("token")
+              navigate('/')
             }
             setIsLoading(false)
+            
         }
       ).catch(
         err => {
           setTokenValid(false)
           setIsLoading(false)
+          localStorage.removeItem("token")
+          navigate('/')
         }
       )
     }}, [token])
