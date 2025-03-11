@@ -102,9 +102,9 @@ const Register = () => {
                            <Col md={6}>
                               <motion.div initial={{ x: -20 }} animate={{ x: 0 }}>
                                  <Form.Group className="mb-3 form-group">
-                                    <div className={`input-icon ${errors.f_n && 'icon-more'}`}>
+                                    {/* <div className={`input-icon ${errors.f_n && 'icon-more'}`}>
                                        <FaUser />
-                                    </div>
+                                    </div> */}
                                     <Form.Control
                                        type="text"
                                        placeholder="First Name"
@@ -119,9 +119,9 @@ const Register = () => {
                            <Col md={6}>
                               <motion.div initial={{ x: 20 }} animate={{ x: 0 }}>
                                  <Form.Group className="mb-3 form-group">
-                                    <div className={`input-icon ${errors.l_n && 'icon-more'}`}>
+                                    {/* <div className={`input-icon ${errors.l_n && 'icon-more'}`}>
                                        <FaUser />
-                                    </div>
+                                    </div> */}
                                     <Form.Control
                                        type="text"
                                        placeholder="Last Name"
@@ -137,9 +137,9 @@ const Register = () => {
 
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
                            <Form.Group className="mb-3 form-group">
-                              <div className={`input-icon ${errors.email && 'icon-more'}`}>
+                              {/* <div className={`input-icon ${errors.email && 'icon-more'}`}>
                                  <FaEnvelope />
-                              </div>
+                              </div> */}
                               <Form.Control
                                  type="email"
                                  placeholder="Email"
@@ -155,9 +155,9 @@ const Register = () => {
                            <Col md={6}>
                               <motion.div initial={{ y: 10 }} animate={{ y: 0 }} transition={{ delay: 0.3 }}>
                                  <Form.Group className="mb-3 form-group">
-                                    <div className={`input-icon ${errors.password ? 'icon-more' : ''}`} style={{transform: `${errors.password ? 'translateY(-150%)' : ''}`}}>
+                                    {/* <div className={`input-icon ${errors.password ? 'icon-more' : ''}`} style={{transform: `${errors.password ? 'translateY(-150%)' : ''}`}}>
                                        <FaLock />
-                                    </div>
+                                    </div> */}
                                     <Form.Control
                                        type="password"
                                        placeholder="Password"

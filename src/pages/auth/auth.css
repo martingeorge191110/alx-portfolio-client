@@ -15,17 +15,8 @@
    backdrop-filter: blur(10px);
 }
 
-.form-group {
+.form-group-auth {
    position: relative;
-}
-
-.input-icon {
-   position: absolute;
-   left: 15px;
-   top: 50%;
-   transform: translateY(-50%);
-   color: #6c757d;
-   z-index: 2;
 }
 
 .form-control {

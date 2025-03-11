@@ -79,10 +79,10 @@ const Login = () => {
                      <h2 className="text-center mb-4">Welcome Back</h2>
                      <Form onSubmit={handleSubmit}>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                           <Form.Group className="mb-3 form-group">
-                              <div className={`input-icon ${errors.email && 'icon-more'}`}>
+                           <Form.Group className="mb-3 form-group-auth">
+                              {/* <div className={`input-icon-auth ${errors.email && 'icon-more'}`}>
                                  <FaEnvelope />
-                              </div>
+                              </div> */}
                               <Form.Control
                                  type="email"
                                  placeholder="Email"
@@ -95,10 +95,10 @@ const Login = () => {
                         </motion.div>
 
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
-                           <Form.Group className="mb-3 form-group">
-                              <div className={`input-icon ${errors.password && 'icon-more'}`}>
+                           <Form.Group className="mb-3 form-group-auth">
+                              {/* <div className={`input-icon-auth ${errors.password && 'icon-more'}`}>
                                  <FaLock />
-                              </div>
+                              </div> */}
                               <Form.Control
                                  type="password"
                                  placeholder="Password"
