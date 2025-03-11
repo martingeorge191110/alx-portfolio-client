@@ -10,13 +10,15 @@ import {
    FaExclamationCircle,
    FaCheck
 } from 'react-icons/fa';
-import { Container, Row, Col, Card, Form, Button, Badge, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Badge, Modal, OverlayTrigger, Tooltip, Alert } from 'react-bootstrap';
 import './profile.css';
 import { useDispatch, useSelector } from 'react-redux';
 import LoadingPage from '../loading/loading.page';
 import { IsLoadingAction } from '../../redux/actions';
-import { UserProfileApi } from '../../services/user';
+import { ChangeUserPicApi, UpdateToPremAccountApi, UserProfileApi } from '../../services/user';
 import { useNavigate } from 'react-router-dom';
+import CreateCompanyModal from '../../components/registering_company/register.company';
+import LoadingSpinner from '../../components/loading_spinners/loading';
 
 
 
@@ -45,6 +47,10 @@ const Profile = () => {
    const [isUploading, setIsUploading] = useState(false);
    const [uploadError, setUploadError] = useState(null);
 
+   const [payment, setPayment] = useState(false)
+   const [loadingPremAccount, setLoadingPremAccount] = useState(false)
+
+   const [registerCompPage, setRegisterCompPage] = useState(false)
    // const [user, setUser] = useState({
    //    id: 'user-123',
    //    firstName: 'John',
@@ -98,35 +104,45 @@ const Profile = () => {
       })
    }, [])
 
-   const [selectedFile, setSelectedFile] = useState(null);
+   const [fileImage, setFile] = useState(null)
+
    const handleImageUpload = async (file) => {
-      if (!file) return;
+      if (!file || !file.type.startsWith("image/")) {
+         alert("Please upload a valid image file.");
+         return;
+      }
+
+      setIsUploading(true);
+      setUploadError(null);
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "PortfolioPreset");
 
       try {
-         setIsUploading(true);
-         setUploadError(null);
+         const res = await fetch("https://api.cloudinary.com/v1_1/daghpnbz3/image/upload", {
+            method: "POST",
+            body: formData,
+         });
 
-         // Upload to backend
-         const formData = new FormData();
-         formData.append('avatar', file);
+         if (!res.ok) throw new Error("Upload failed. Check your Cloudinary settings.");
 
-         // const response = await fetch(`/api/companies/${company.id}/avatar`, {
-         //    method: 'PUT',
-         //    body: formData,
-         //    headers: {
-         //       'Authorization': `Bearer ${user.token}`
-         //    }
-         // });
+         const data = await res.json();
 
-         // if (!response.ok) throw new Error('Upload failed');
+         if (!data.secure_url) throw new Error("Cloudinary did not return a valid URL.");
 
-         // const data = await response.json();
-         setNewImage(null);
-         // Update company data in parent component
-         // company.avatar = data.newAvatarUrl;
+         const response = await ChangeUserPicApi({ token, url: data.secure_url })
 
+         if (response.success) {
+            setUserDetailes({ ...userDetails, avatar: response.secure_url })
+            setFile(data.secure_url);
+            setNewImage(null)
+            alert(response.message)
+         } else
+            throw new Error(response.message)
       } catch (error) {
-         setUploadError(error.message);
+         console.error("Upload error:", error);
+         setUploadError(error.message || "Something went wrong");
       } finally {
          setIsUploading(false);
       }
@@ -137,6 +153,26 @@ const Profile = () => {
       setUploadError(null);
    };
 
+
+   const submitPayment = async () => {
+      setLoadingPremAccount(true)
+
+      try {
+         const response = await UpdateToPremAccountApi({token})
+
+         console.log(response)
+         if (response.success)
+            window.location.href = response.url;
+         else
+            alert(response.message)
+
+      } catch (err) {
+         alert(err)
+         setPayment(false)
+      } finally {
+         setLoadingPremAccount(false)
+      }
+   }
    return (
       <> {isLoading ? <LoadingPage /> : userDetails &&
          <motion.div
@@ -145,6 +181,8 @@ const Profile = () => {
             transition={{ duration: 0.5 }}
             className="profile-page"
          >
+            {loadingPremAccount ? <LoadingSpinner message='Creating session for payment....'/> : ''}
+            {!registerCompPage ? "" : <CreateCompanyModal onClose={() => setRegisterCompPage(false)} />}
             <Container>
                {/* Profile Header */}
                <motion.section
@@ -178,6 +216,7 @@ const Profile = () => {
                                           hidden
                                           onChange={(e) => {
                                              const file = e.target.files[0];
+                                             setFile(e.target.files[0])
                                              if (file) setNewImage(URL.createObjectURL(file));
                                           }}
                                        />
@@ -190,7 +229,7 @@ const Profile = () => {
                                     >
                                        <button
                                           className="btn btn-success btn-sm px-3"
-                                          onClick={() => handleImageUpload(newImage)}
+                                          onClick={() => handleImageUpload(fileImage)}
                                           disabled={isUploading}
                                        >
                                           {isUploading ? (
@@ -240,10 +279,29 @@ const Profile = () => {
                                  <FaRegClock className="me-2" />
                                  {`${userDetails.paid ? 'subscription Ends: ' + userDetails.subis_end_date : "No subscription"}`}
                               </Badge>
-                              <Button variant="outline-primary" className="w-20 mt-2" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              {payment || userDetails.paid ? "" : <Button onClick={() => setPayment(true)} variant="outline-primary" className="w-20 mt-2" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                  <FaPlus style={{ marginRight: "5px" }} />
                                  Start new subiscription as an investor account!
-                              </Button>
+                              </Button>}
+                              {!payment ? '' : <div><button
+                                 className="btn btn-success btn-sm px-3"
+                                 disabled={isUploading}
+                                 onClick={() => submitPayment()}
+                                 style={{marginTop: '1rem'}}
+                              >
+                                 {isUploading ? (
+                                    <div className="spinner-border spinner-border-sm" />
+                                 ) : (
+                                    <><FaCheck className="me-1" />Sure, go to payment session</>
+                                 )}
+                              </button>
+                              <button
+                                 className="btn btn-danger btn-sm px-3"
+                                 onClick={() => setPayment(false)}
+                                 style={{marginLeft: '2rem', marginTop: "1rem"}}
+                              >
+                                 <FaTimes className="me-1" /> Cancel
+                              </button></div>}
                            </motion.div>
                         </div>
                      </Col>
@@ -300,7 +358,7 @@ const Profile = () => {
                                  <h3>Your Companies</h3>
                               </div>
                               <div className='create-company-btn'>
-                                 <Button variant="outline-primary" className="w-100 mt-2" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                 <Button onClick={() => setRegisterCompPage(true)} variant="outline-primary" className="w-100 mt-2" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                     <FaPlus style={{ marginRight: "2px" }} />
                                     Register new Company
                                  </Button>
