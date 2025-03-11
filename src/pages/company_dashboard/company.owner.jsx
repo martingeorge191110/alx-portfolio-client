@@ -6,13 +6,16 @@ import {
    FaFilePdf, FaDollarSign, FaUserPlus, FaRegFilePdf, FaRocket, FaIndustry, FaMapMarkerAlt, FaCalendarAlt,
    FaAddressBook, FaUserFriends, FaCrown, FaUserTag, FaUpload, FaCalendar, FaHandshake, FaCertificate,
    FaClock, FaPercent, FaBalanceScale, FaCamera, FaCheck, FaTimes, FaLastfm,
-   FaChartArea
+   FaChartArea,
+   FaSleigh
 } from 'react-icons/fa';
 import { FiUsers, FiArrowUpRight, FiDownload } from 'react-icons/fi';
 import './company_dashboard.css';
 import { AiOutlineStock } from "react-icons/ai";
-import { CompanyGrowthRatesInfoApi } from '../../services/company';
+import { ChangeCompanyPicApi, CompanyGrowthRatesInfoApi } from '../../services/company';
 import { useSelector } from 'react-redux';
+import { Alert } from 'react-bootstrap';
+import ProfitModal from '../../components/add_growth_rates/add.growth.rates';
 
 const cardVariants = {
    hidden: { opacity: 0, y: 20 },
@@ -35,6 +38,7 @@ const CompanyDashboardOwner = ({ company, user }) => {
    const [growthData, setGrowthData] = useState([]);
    const [isGraphLoading, setIsGraphLoading] = useState(true);
 
+   const [openProfitModel, setOpenProfitModel] = useState(false)
 
    const [newImage, setNewImage] = useState(null);
    const [isUploading, setIsUploading] = useState(false);
@@ -48,7 +52,7 @@ const CompanyDashboardOwner = ({ company, user }) => {
                year: rate.year,
                profit: parseFloat(rate.profit),
             }));
-            console.log(parsed)
+            // console.log(parsed)
             setGrowthData(parsed)
          }
       ).catch(
@@ -60,42 +64,48 @@ const CompanyDashboardOwner = ({ company, user }) => {
             setIsGraphLoading(false)
          }
       )
-      // const parsed = company.growthRates.map(rate => ({
-      //    year: rate.year || 0,
-      //    profit: parseFloat(rate.profit) || 0,
-      // }));
-      // setGrowthData(parsed);
-      // setIsGraphLoading(false);
+
    }, [company.growthRates]);
 
+   const [fileImage, setFile] = useState(null)
    const handleImageUpload = async (file) => {
-      if (!file) return;
+      if (!file || !file.type.startsWith("image/")) {
+         alert("Please upload a valid image file.");
+         return;
+      }
+
+      setIsUploading(true);
+      setUploadError(null);
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "PortfolioPreset");
+
 
       try {
-         setIsUploading(true);
-         setUploadError(null);
+         const res = await fetch("https://api.cloudinary.com/v1_1/daghpnbz3/image/upload", {
+            method: "POST",
+            body: formData,
+         });
 
-         // Upload to backend
-         const formData = new FormData();
-         formData.append('avatar', file);
+         if (!res.ok) throw new Error("Upload failed. Check your Cloudinary settings.");
 
-         // const response = await fetch(`/api/companies/${company.id}/avatar`, {
-         //    method: 'PUT',
-         //    body: formData,
-         //    headers: {
-         //       'Authorization': `Bearer ${user.token}`
-         //    }
-         // });
+         const data = await res.json();
 
-         // if (!response.ok) throw new Error('Upload failed');
+         if (!data.secure_url) throw new Error("Cloudinary did not return a valid URL.");
 
-         // const data = await response.json();
-         setNewImage(null);
-         // Update company data in parent component
-         // company.avatar = data.newAvatarUrl;
+         const response = await ChangeCompanyPicApi({ token, company_id: company.id, url: data.secure_url })
 
+         if (response.success) {
+            company.avatar = response.secure_url
+            setFile(data.secure_url);
+            setNewImage(null)
+            alert(response.message)
+         } else
+            throw new Error(response.message)
       } catch (error) {
-         setUploadError(error.message);
+         console.error("Upload error:", error);
+         setUploadError(error.message || "Something went wrong");
       } finally {
          setIsUploading(false);
       }
@@ -113,6 +123,8 @@ const CompanyDashboardOwner = ({ company, user }) => {
          animate={{ opacity: 1 }}
          transition={{ duration: 0.5 }}
       >
+         {/* Porift Model */}
+         {openProfitModel ? <ProfitModal onClose={() => setOpenProfitModel(false)} company={company}/> : ''}
          {/* Animated Header Section */}
          <motion.section
             className="company-header row g-4 align-items-center py-5"
@@ -124,7 +136,7 @@ const CompanyDashboardOwner = ({ company, user }) => {
                <motion.div className="avatar-edit-container">
                   {/* Image Preview */}
                   <motion.img
-                     src={newImage || company.avatar}
+                     src={newImage || company.avatar || 'https://th.bing.com/th/id/R.ecd9c2e8ed0dbbc96ac472a965e4afda?rik=rZ%2b5er9OQMjXkQ&pid=ImgRaw&r=0'}
                      alt={company.name}
                      className="company-logo rounded-4 shadow-lg"
                      whileHover={{ rotate: -2 }}
@@ -145,6 +157,7 @@ const CompanyDashboardOwner = ({ company, user }) => {
                               hidden
                               onChange={(e) => {
                                  const file = e.target.files[0];
+                                 setFile(e.target.files[0])
                                  if (file) setNewImage(URL.createObjectURL(file));
                               }}
                            />
@@ -157,7 +170,7 @@ const CompanyDashboardOwner = ({ company, user }) => {
                         >
                            <button
                               className="btn btn-success btn-sm px-3"
-                              onClick={() => handleImageUpload(newImage)}
+                              onClick={() => handleImageUpload(fileImage)}
                               disabled={isUploading}
                            >
                               {isUploading ? (
@@ -309,7 +322,7 @@ const CompanyDashboardOwner = ({ company, user }) => {
                            >
                               <div className="d-flex align-items-center p-3 bg-light rounded-3">
                                  <img
-                                    src={owner.avatar}
+                                    src={owner.avatar || 'https://th.bing.com/th/id/OIP.nYjTZMgoAAgpLUBL5ooqWwHaHa?rs=1&pid=ImgDetMain'}
                                     alt={owner.f_n}
                                     className="rounded-circle me-3"
                                     width="60"
@@ -341,9 +354,18 @@ const CompanyDashboardOwner = ({ company, user }) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
          >
-            <div className="card-header bg-transparent d-flex align-items-center">
-               <FaChartLine className="fs-3 text-primary me-2" />
-               <h3 className="mb-0">Financial Performance</h3>
+            <div style={{display: "flex", justifyContent: "space-between"}} className="card-header bg-transparent d-flex align-items-center">
+               <div style={{display: "flex", justifyContent: "center", alignItems: "center"}}><FaChartLine className="fs-3 text-primary me-2" />
+               <h3 className="mb-0">Financial Performance</h3></div>
+               <motion.button
+                  onClick={() => setOpenProfitModel(true)}
+                  className="btn btn-primary rounded-pill px-4 d-flex align-items-center"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+               >
+                  <FaUpload className="me-2" />
+                  Change Profit Growth Rates
+               </motion.button>
             </div>
 
             <div className="card-body">

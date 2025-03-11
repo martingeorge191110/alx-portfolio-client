@@ -8,6 +8,7 @@ import LoadingPage from "../loading/loading.page.jsx";
 import { IsLoadingAction } from "../../redux/actions.js";
 import { CompanyBasicInfoApi } from "../../services/company.js";
 
+
 const CompanyDashboard = () => {
 
    const token = useSelector(
@@ -75,7 +76,6 @@ const CompanyDashboard = () => {
       dispatch(IsLoadingAction(true))
       CompanyBasicInfoApi({token, company_id}).then(
          res => {
-            console.log(res.data_result)
             setCompany({...company, ...res.data_result.company, owners: res.data_result.owners})
             setUser({...res.data_result.user, isOwner: res.data_result.isOwner})
          }

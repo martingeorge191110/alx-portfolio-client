@@ -89,7 +89,7 @@ const CompanyDashboardInvestor = ({ company, user }) => {
          >
             <div className="col-md-3 text-center position-relative">
                <motion.img
-                  src={company.avatar}
+                  src={company.avatar || 'https://th.bing.com/th/id/R.ecd9c2e8ed0dbbc96ac472a965e4afda?rik=rZ%2b5er9OQMjXkQ&pid=ImgRaw&r=0'}
                   alt={company.name}
                   className="company-logo rounded-4 shadow-lg"
                   whileHover={{ rotate: -2, scale: 1.05 }}
@@ -215,7 +215,7 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                            >
                               <div className="d-flex align-items-center p-3 bg-light rounded-3">
                                  <img
-                                    src={owner.avatar}
+                                    src={owner.avatar || 'https://th.bing.com/th/id/OIP.nYjTZMgoAAgpLUBL5ooqWwHaHa?rs=1&pid=ImgDetMain'}
                                     alt={owner.f_n}
                                     className="rounded-circle me-3"
                                     width="60"
