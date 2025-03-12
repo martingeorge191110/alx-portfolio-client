@@ -73,12 +73,18 @@
 }
 
 /* Dropdown Enhancements */
-.dropdown-menu {
+.dropdown-menu-nav {
    border: none !important;
+   position: absolute;
+   z-index: 100000;
+   left: -4rem;
+   top: 2rem;
+   background-color: white;
    box-shadow: var(--dropdown-shadow);
    border-radius: 12px !important;
    padding: 0.5rem;
    margin-top: 1rem;
+   margin-right: 2rem;
    border: 1px solid rgba(0, 0, 0, 0.04) !important;
    min-width: 220px;
 }

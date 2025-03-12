@@ -5,6 +5,8 @@ import { useSelector } from 'react-redux';
 import LoadingPage from './pages/loading/loading.page.jsx';
 import CompanyDashboard from './pages/company_dashboard/company.dashboard.jsx';
 import CompanySearch from './pages/searching_companies/searching.companies.jsx';
+import MainPage from './pages/mainPage/main.page.jsx';
+import LandingPageNotAuth from './pages/landing_page_not_auth/landing.page.not.jsx';
 
 
 
@@ -23,6 +25,7 @@ function AppRoutes({tokenValidation}) {
             <Route exact path='/profile' element={!tokenValidation ? <Navigate to={'/'}/> : <Profile />} />
             <Route exact path='/company/:id' element={!tokenValidation ? <Navigate to={'/'}/> : <CompanyDashboard />} />
             <Route exact path='/company/search' element={!tokenValidation ? <Navigate to={'/'}/> : <CompanySearch />} />
+            <Route path='/*' element={<LandingPageNotAuth/>}/>
          </Routes>
       </>
    )

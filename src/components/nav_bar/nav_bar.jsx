@@ -137,7 +137,7 @@ const Navbar = ({tokenValidation}) => {
                            <AnimatePresence>
                               {showNotificationsDropdown && (
                                  <motion.ul
-                                    className="dropdown-menu show"
+                                    className="dropdown-menu-nav show"
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
@@ -178,7 +178,7 @@ const Navbar = ({tokenValidation}) => {
                            <AnimatePresence>
                               {showProfileDropdown && (
                                  <motion.ul
-                                    className="dropdown-menu show"
+                                    className="dropdown-menu-nav show"
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
