@@ -7,15 +7,18 @@ import {
    FaAddressBook, FaUserFriends, FaCrown, FaUserTag, FaUpload, FaCalendar, FaHandshake, FaCertificate,
    FaClock, FaPercent, FaBalanceScale, FaCamera, FaCheck, FaTimes, FaLastfm,
    FaChartArea,
-   FaSleigh
+   FaSleigh,
+   FaPlus
 } from 'react-icons/fa';
 import { FiUsers, FiArrowUpRight, FiDownload } from 'react-icons/fi';
 import './company_dashboard.css';
 import { AiOutlineStock } from "react-icons/ai";
-import { ChangeCompanyPicApi, CompanyGrowthRatesInfoApi } from '../../services/company';
+import { ChangeCompanyPicApi, CompanyGrowthRatesInfoApi, RetreivingDocsCompanyApi } from '../../services/company';
 import { useSelector } from 'react-redux';
 import { Alert } from 'react-bootstrap';
 import ProfitModal from '../../components/add_growth_rates/add.growth.rates';
+import DocumentCreator from '../../components/create_document/create.document';
+import UserSearchModal from '../../components/invite_owners/invite.owners';
 
 const cardVariants = {
    hidden: { opacity: 0, y: 20 },
@@ -44,6 +47,13 @@ const CompanyDashboardOwner = ({ company, user }) => {
    const [isUploading, setIsUploading] = useState(false);
    const [uploadError, setUploadError] = useState(null);
 
+   const [documents, setDocuments] = useState(null)
+   const [isDocumentCreate, setIsDocumentCreate] = useState(false)
+   const [isDocumentsLoaidng, setIsDocumentsLoaidng] = useState(true);
+
+   const [isInvite, setIsInvite] = useState(false)
+
+
    // Parse growth data from string to number
    useEffect(() => {
       CompanyGrowthRatesInfoApi({ token, company_id: company.id }).then(
@@ -66,6 +76,28 @@ const CompanyDashboardOwner = ({ company, user }) => {
       )
 
    }, [company.growthRates]);
+
+   // Document loading section for retreving data
+   useEffect(() => {
+      RetreivingDocsCompanyApi({ token, company_id: company.id }).then(
+         res => {
+            if (res.success) {
+               setDocuments(res.documents)
+            } else
+               alert(res.message)
+         }
+      ).catch(
+         err => {
+            alert(err)
+            throw (err)
+         }
+      ).finally(
+         () => {
+            setIsDocumentsLoaidng(false)
+         }
+      )
+
+   }, [company.documents]);
 
    const [fileImage, setFile] = useState(null)
    const handleImageUpload = async (file) => {
@@ -124,7 +156,9 @@ const CompanyDashboardOwner = ({ company, user }) => {
          transition={{ duration: 0.5 }}
       >
          {/* Porift Model */}
-         {openProfitModel ? <ProfitModal onClose={() => setOpenProfitModel(false)} company={company}/> : ''}
+         {openProfitModel ? <ProfitModal onClose={() => setOpenProfitModel(false)} company={company} /> : ''}
+         {isInvite ? <UserSearchModal onClose={() => setIsInvite(false)} company={company}/> : ''}
+         {isDocumentCreate ? <DocumentCreator onClose={() => setIsDocumentCreate(false)} setDocuments={setDocuments} documents={documents} company={company} /> : ''}
          {/* Animated Header Section */}
          <motion.section
             className="company-header row g-4 align-items-center py-5"
@@ -306,9 +340,18 @@ const CompanyDashboardOwner = ({ company, user }) => {
                variants={cardVariants}
             >
                <div className="card h-100 border-0 shadow-hover">
-                  <div className="card-header bg-transparent d-flex align-items-center">
-                     <FaUserFriends className="fs-3 text-primary me-2" />
-                     <h3 className="mb-0">Ownership Structure</h3>
+                  <div style={{display: "flex", justifyContent: 'space-between'}} className="card-header bg-transparent d-flex align-items-center">
+                     <div style={{display: 'flex', alignItems: 'center'}}><FaUserFriends className="fs-3 text-primary me-2" />
+                     <h3 className="mb-0">Ownership Structure</h3></div>
+                     <motion.button
+                        onClick={() => setIsInvite(true)}
+                        className="btn btn-primary rounded-pill px-4 d-flex align-items-center"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                     >
+                        <FaPlus className="me-2" />
+                        Invite owners with you
+                     </motion.button>
                   </div>
                   <div className="card-body">
                      <div className="row g-3">
@@ -354,9 +397,9 @@ const CompanyDashboardOwner = ({ company, user }) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
          >
-            <div style={{display: "flex", justifyContent: "space-between"}} className="card-header bg-transparent d-flex align-items-center">
-               <div style={{display: "flex", justifyContent: "center", alignItems: "center"}}><FaChartLine className="fs-3 text-primary me-2" />
-               <h3 className="mb-0">Financial Performance</h3></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }} className="card-header bg-transparent d-flex align-items-center">
+               <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}><FaChartLine className="fs-3 text-primary me-2" />
+                  <h3 className="mb-0">Financial Performance</h3></div>
                <motion.button
                   onClick={() => setOpenProfitModel(true)}
                   className="btn btn-primary rounded-pill px-4 d-flex align-items-center"
@@ -429,6 +472,7 @@ const CompanyDashboardOwner = ({ company, user }) => {
                   <h3 className="mb-0">Corporate Documents</h3>
                </div>
                {user.isOwner && <motion.button
+                  onClick={() => setIsDocumentCreate(true)}
                   className="btn btn-primary rounded-pill px-4 d-flex align-items-center"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -439,7 +483,7 @@ const CompanyDashboardOwner = ({ company, user }) => {
             </div>
             <div className="card-body">
                <div className="row g-4">
-                  {company.documents.map((doc, idx) => (
+                  {isDocumentsLoaidng && !documents ? <ChartSkeleton /> : documents.map((doc, idx) => (
                      <motion.div
                         key={doc.id}
                         className="col-md-6 col-xl-4"

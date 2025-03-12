@@ -80,6 +80,23 @@ export const CreateStripeForCompanyApi = async ({token, data_body}) => {
    }
 }
 
+export const CreatingDocCompanyApi = async ({token, company_id, data_body}) => {
+   try {
+      const response = await CompanyDataInfo.post(`/document/${company_id}`, {
+         ...data_body
+      }, {
+         headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+         }
+      })
+
+      return (response.data)
+   } catch (err) {
+      return (err.response.data)
+   }
+}
+
 export const ChangeCompanyGrowtRatesApi = async ({token, company_id, rates}) => {
    try {
       const deleteResponse = await CompanyDataInfo.delete(`/rates/${company_id}`, {
@@ -93,6 +110,38 @@ export const ChangeCompanyGrowtRatesApi = async ({token, company_id, rates}) => 
          throw (new Error(deleteResponse.data.message))
 
       const response = await CompanyDataInfo.post(`/rates/${company_id}`, rates, {
+         headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+         }
+      })
+
+      return (response.data)
+   } catch (err) {
+      return (err.response.data)
+   }
+}
+
+export const InvitOwnerApi = async ({token, user_id, company_id}) => {
+   try {
+      const response = await CompanyDataInfo.post(`/invite/${company_id}`, {
+         user_id: user_id
+      },{
+         headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+         }
+      })
+
+      return (response.data)
+   } catch (err) {
+      return (err.response.data)
+   }
+}
+
+export const RetreivingDocsCompanyApi = async ({token, company_id}) => {
+   try {
+      const response = await CompanyDataInfo.get(`/document/${company_id}`, {
          headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`

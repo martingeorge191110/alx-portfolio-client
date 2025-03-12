@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import CompanyDashboardInvestor from "./company.investor";
 import { useDispatch, useSelector } from "react-redux";
 import CompanyDashboardOwner from "./company.owner.jsx";
@@ -30,20 +30,6 @@ const CompanyDashboard = () => {
          { year: 2022, profit: "7500000" },
          { year: 2023, profit: "12000000" }
       ],
-      documents: [
-         {
-            id: "doc-1",
-            title: "2023 Annual Report",
-            description: "Complete financial overview for 2023",
-            fileUrl: "/reports/2023-annual.pdf"
-         },
-         {
-            id: "doc-2",
-            title: "Q1 2024 Financials",
-            description: "First quarter financial results",
-            fileUrl: "/reports/q1-2024.pdf"
-         }
-      ],
       investments: [
          {
             id: "inv-1",
@@ -72,10 +58,12 @@ const CompanyDashboard = () => {
       ]
    });
 
+
    useLayoutEffect(() => {
       dispatch(IsLoadingAction(true))
       CompanyBasicInfoApi({token, company_id}).then(
          res => {
+            console.log(res)
             setCompany({...company, ...res.data_result.company, owners: res.data_result.owners})
             setUser({...res.data_result.user, isOwner: res.data_result.isOwner})
          }

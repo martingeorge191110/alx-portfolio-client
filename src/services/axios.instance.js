@@ -18,3 +18,8 @@ export const CompanyDataInfo = axios.create({
    baseURL: `${url}/api/company/`,
    withCredentials: true
 })
+
+export const NotificationDataInfo = axios.create({
+   baseURL: `${url}/api/notification/`,
+   withCredentials: true
+})
