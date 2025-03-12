@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
    FaHome, FaInfoCircle, FaPhone, FaTags, FaUserPlus,
@@ -9,6 +9,7 @@ import {
 import './nav_bar.css';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
+import { RetreiveAllNotificationsApi } from '../../services/notifications';
 
 const Navbar = ({tokenValidation}) => {
    const navigate = useNavigate()
@@ -19,9 +20,14 @@ const Navbar = ({tokenValidation}) => {
    const [isLoggedIn, setIsLoggedIn] = useState(false);
    const [notifications, setNotifications] = useState([]);
    const navbarRef = useRef(null);
+   const [isLoading, setIsLoading] = useState(true)
 
+   const [page, setPage] = useState(1)
    const user = useSelector(
       state => state.user.info
+   )
+   const token = useSelector(
+      state => state.user.token
    )
 
    // Check auth status on mount
@@ -59,7 +65,7 @@ const Navbar = ({tokenValidation}) => {
       { id: 3, text: 'New feature available', read: false },
    ];
 
-   const unreadNotifications = notificationItems.filter(n => !n.read).length;
+   const [unreadNotifications, setUnreadNotifications] = useState(0)
 
    const handleClickOutside = (event) => {
       if (navbarRef.current && !navbarRef.current.contains(event.target)) {
@@ -73,6 +79,23 @@ const Navbar = ({tokenValidation}) => {
       return () => document.removeEventListener('mousedown', handleClickOutside);
    }, []);
 
+   useLayoutEffect(() => {
+      RetreiveAllNotificationsApi({token, page: page}).then(
+         res => {
+            console.log(res)
+            setUnreadNotifications(res.notifications.length + res.owner_notifications.length)
+            setNotifications({notifications: res.notifications, owners: res.owner_notifications})
+         }
+      ).finally(
+         () => setIsLoading(false)
+      )
+   }, [])
+
+   useEffect(() => {
+      if (notifications) {
+         console.log(notifications)
+      }
+   }, [notifications])
    return (
       <motion.nav
          ref={navbarRef}
@@ -135,7 +158,7 @@ const Navbar = ({tokenValidation}) => {
                            </motion.button>
 
                            <AnimatePresence>
-                              {showNotificationsDropdown && (
+                              { showNotificationsDropdown ? isLoading ? '.....' :  (
                                  <motion.ul
                                     className="dropdown-menu-nav show"
                                     initial={{ opacity: 0, y: 10 }}
@@ -143,7 +166,26 @@ const Navbar = ({tokenValidation}) => {
                                     exit={{ opacity: 0, y: -10 }}
                                  >
                                     <div className="dropdown-header">Notifications</div>
-                                    {notificationItems.map(notification => (
+                                    
+                                    {notifications.owners.map((noti) => (
+                                          <motion.li
+                                          key={noti.rel_id}
+                                          className={`dropdown-item `}
+                                          whileHover={{ x: 5 }}
+                                          >
+                                          <div className="d-flex align-items-center">
+                                             <FaRegBell className="me-2" />
+                                             {noti.f_n} is invited you to be owner
+                                             at {noti.company_name}
+                                          </div>
+                                          <div>
+                                             <button style={{background: 'lightgreen', border: 'none'}}>Accecpt</button>
+                                             <button style={{background: 'red', border: 'none'}}>Cancel</button>
+                                          </div>
+                                       </motion.li>
+                                    ))
+                                    }
+                                    {/* {notifications.map(notification => (
                                        <motion.li
                                           key={notification.id}
                                           className={`dropdown-item ${!notification.read ? 'unread' : ''}`}
@@ -154,14 +196,14 @@ const Navbar = ({tokenValidation}) => {
                                              {notification.text}
                                           </div>
                                        </motion.li>
-                                    ))}
-                                    {notificationItems.length === 0 && (
+                                    ))} */}
+                                    {/* {unreadNotifications.length === 0 && (
                                        <div className="dropdown-item text-muted">
                                           No new notifications
                                        </div>
-                                    )}
+                                    )} */}
                                  </motion.ul>
-                              )}
+                              ) : ''}
                            </AnimatePresence>
                         </li>
 

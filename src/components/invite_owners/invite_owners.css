@@ -1,0 +1,161 @@
+.search-modal-overlay {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   z-index: 1000;
+   background: rgba(0, 0, 0, 0.5);
+}
+
+.search-modal {
+   background: #ffffff;
+   padding: 2rem;
+   border-radius: 16px;
+   width: 90%;
+   max-width: 800px;
+   max-height: 90vh;
+   position: relative;
+   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+   overflow-y: auto;
+   margin-top: 4rem;
+}
+
+.search-form {
+   margin-bottom: 2rem;
+}
+
+.close-btn-invite {
+   position: absolute;
+   top: 1rem;
+   right: 1rem;
+   background: none;
+   border: none;
+   font-size: 1.5rem;
+   color: #666;
+   cursor: pointer;
+   transition: color 0.3s ease;
+}
+
+.close-btn-invite:hover {
+   color: #ff4444;
+}
+
+
+.search-input-group {
+   display: flex;
+   gap: 1rem;
+   position: relative;
+}
+
+.search-input-group input {
+   flex: 1;
+   padding: 0.8rem 1.5rem;
+   border: 2px solid #e9ecef;
+   border-radius: 50px;
+   font-size: 1rem;
+   transition: border-color 0.3s ease;
+}
+
+.search-input-group input:focus {
+   outline: none;
+   border-color: rgb(100, 100, 255);
+}
+
+.search-btn {
+   background: rgb(100, 100, 255);
+   color: white;
+   border: none;
+   border-radius: 50px;
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 0.5rem;
+}
+
+.results-grid {
+   display: grid;
+   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+   gap: 1.5rem;
+   margin-bottom: 2rem;
+}
+
+.user-card {
+   background: #f8f9fa;
+   border-radius: 12px;
+   padding: 1rem;
+   transition: transform 0.3s ease;
+   cursor: pointer;
+}
+
+.user-avatar {
+   width: 60px;
+   height: 60px;
+   border-radius: 50%;
+   margin-bottom: 1rem;
+   object-fit: cover;
+}
+
+.user-info h4 {
+   margin: 0 0 0.5rem 0;
+   color: #2c3e50;
+}
+
+.user-nationality {
+   display: flex;
+   align-items: center;
+   gap: 0.5rem;
+   color: #666;
+}
+
+.load-more {
+   background: rgb(100, 100, 255);
+   color: white;
+   border: none;
+   padding: 0.8rem 2rem;
+   border-radius: 50px;
+   margin: 0 auto;
+   display: flex;
+   align-items: center;
+   gap: 0.5rem;
+   cursor: pointer;
+}
+
+.empty-state {
+   text-align: center;
+   padding: 2rem;
+   color: #666;
+}
+
+.empty-state svg {
+   font-size: 3rem;
+   margin-bottom: 1rem;
+}
+
+.spin {
+   animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+   from {
+      transform: rotate(0deg);
+   }
+
+   to {
+      transform: rotate(360deg);
+   }
+}
+
+@media (max-width: 768px) {
+   .results-grid {
+      grid-template-columns: 1fr;
+   }
+
+   .search-modal {
+      padding: 1.5rem;
+   }
+}

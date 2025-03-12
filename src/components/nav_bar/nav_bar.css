@@ -77,7 +77,7 @@
    border: none !important;
    position: absolute;
    z-index: 100000;
-   left: -4rem;
+   left: -15rem;
    top: 2rem;
    background-color: white;
    box-shadow: var(--dropdown-shadow);
