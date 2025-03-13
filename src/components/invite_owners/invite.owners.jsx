@@ -42,7 +42,8 @@ const UserSearchModal = ({ onClose, company }) => {
          setHasMore(true);
          setPage(prev => prev + 1);
       } catch (error) {
-         console.error('Search failed:', error);
+         // console.error('Search failed:', error);
+         throw (err)
       } finally {
          setLoading(false);
       }
@@ -192,7 +193,7 @@ const UserSearchModal = ({ onClose, company }) => {
                                           <FaPlus className="me-2" />
                                           Invite
                                        </motion.button>
-                                       : invitedUsers ? (  // 🔥 Controlled by global state
+                                       : invitedUsers === user.id ? (  // 🔥 Controlled by global state
                                           <motion.div
                                              className="d-flex gap-2"
                                              initial={{ opacity: 0 }}
@@ -211,7 +212,7 @@ const UserSearchModal = ({ onClose, company }) => {
                                              </button>
                                              <button
                                                 className="btn btn-danger btn-sm px-3"
-                                                onClick={() => toggleInvite(user.id)}  // 🔥 Reset only this user's invite state
+                                                onClick={() => setInvitedUsers(null)}  // 🔥 Reset only this user's invite state
                                                 disabled={inviting}
                                              >
                                                 <FaTimes className="me-1" /> Cancel

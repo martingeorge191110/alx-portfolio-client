@@ -4,21 +4,29 @@ import {
    FaHome, FaInfoCircle, FaPhone, FaTags, FaUserPlus,
    FaSignInAlt, FaBars, FaTimes, FaUser, FaBell, FaCog,
    FaSignOutAlt, FaEnvelope, FaRegBell,
-   FaSearch
+   FaSearch,
+   FaCheck,
+   FaOpenid,
+   FaUserAlt
 } from 'react-icons/fa';
 import './nav_bar.css';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { RetreiveAllNotificationsApi } from '../../services/notifications';
+import { RetreiveAllNotificationsApi, SeenAllNotificationsApi } from '../../services/notifications';
+import { PiTrendUp } from 'react-icons/pi';
+import LoadingPage from '../../pages/loading/loading.page';
+import { AcceptingInvitaionApi, RejectingInvitaionApi } from '../../services/company';
+import LoadingSpinner from '../loading_spinners/loading';
+import UserNotificationCard from '../notifications/notifications';
 
-const Navbar = ({tokenValidation}) => {
+const Navbar = ({ tokenValidation }) => {
    const navigate = useNavigate()
 
    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
    const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
    const [isLoggedIn, setIsLoggedIn] = useState(false);
-   const [notifications, setNotifications] = useState([]);
+   const [notifications, setNotifications] = useState(null);
    const navbarRef = useRef(null);
    const [isLoading, setIsLoading] = useState(true)
 
@@ -59,12 +67,6 @@ const Navbar = ({tokenValidation}) => {
       },
    ];
 
-   const notificationItems = [
-      { id: 1, text: 'New message received', read: false },
-      { id: 2, text: 'Account update required', read: true },
-      { id: 3, text: 'New feature available', read: false },
-   ];
-
    const [unreadNotifications, setUnreadNotifications] = useState(0)
 
    const handleClickOutside = (event) => {
@@ -80,23 +82,67 @@ const Navbar = ({tokenValidation}) => {
    }, []);
 
    useLayoutEffect(() => {
-      RetreiveAllNotificationsApi({token, page: page}).then(
+      RetreiveAllNotificationsApi({ token, page: page }).then(
          res => {
-            console.log(res)
-            setUnreadNotifications(res.notifications.length + res.owner_notifications.length)
-            setNotifications({notifications: res.notifications, owners: res.owner_notifications})
+            if (res.success) {
+               console.log(res)
+               let unreadNotif = 0
+               res.notifications.forEach(ele => {
+                  if (!ele.is_seen)
+                     unreadNotif += 1
+               });
+               setUnreadNotifications(unreadNotif + res.owner_notifications.length)
+               setNotifications({ notifications: res.notifications, owners: res.owner_notifications })
+            }
+         }
+      ).catch(
+         err => {
+            throw (err)
          }
       ).finally(
          () => setIsLoading(false)
       )
    }, [])
 
-   useEffect(() => {
-      if (notifications) {
-         console.log(notifications)
+
+   const [isAccepting, setIsAccepting] = useState(false)
+   const toggleAcceptingInvite = async (rel_id, company_id) => {
+      setIsAccepting(true)
+
+      try {
+         const response = await AcceptingInvitaionApi({ token: token, rel: rel_id })
+
+         if (response.success)
+            navigate(`/company/${company_id}`)
+
+         alert(response.message)
+      } catch (err) {
+         alert(err)
+      } finally {
+         setIsAccepting(false)
       }
-   }, [notifications])
+   };
+
+   const toggleRejectingInvite = async (rel_id, company_id) => {
+      setIsAccepting(true)
+
+      try {
+         const response = await RejectingInvitaionApi({ token: token, rel: rel_id })
+
+         if (response.success)
+            navigate(`/company/${company_id}`)
+
+         alert(response.message)
+      } catch (err) {
+         alert(err)
+      } finally {
+         setIsAccepting(false)
+      }
+   };
+
+
    return (
+      <>
       <motion.nav
          ref={navbarRef}
          className="navbar navbar-expand-lg navbar-light fixed-top"
@@ -104,6 +150,7 @@ const Navbar = ({tokenValidation}) => {
          animate={{ y: 0 }}
          transition={{ duration: 0.5, type: 'spring' }}
       >
+         {/* {toUser ? <UserNotificationCard user={toUser} /> : ''} */}
          <div className="container">
             {/* Brand Logo */}
             <motion.a
@@ -146,11 +193,29 @@ const Navbar = ({tokenValidation}) => {
                         <li className="nav-item dropdown">
                            <motion.button
                               className="nav-link notification-btn"
-                              onClick={() => setShowNotificationsDropdown(!showNotificationsDropdown)}
+                              onClick={() => {
+                                 setShowNotificationsDropdown(!showNotificationsDropdown)
+                                 const notifications_ids = []
+                                 for (const ele of notifications.notifications)
+                                    if (!ele.is_seen)
+                                       notifications_ids.push(ele.id)
+
+                                 if (notifications_ids.length > 0) {
+                                    SeenAllNotificationsApi({ token, notifications_arr: notifications_ids }).then(
+                                       res => {
+                                          if (res.success) {
+                                             const Notifs = notifications - notifications.owners.length
+                                             setUnreadNotifications(unreadNotifications - Notifs)
+                                          }
+                                       }).catch(
+                                          err => console.log(err)
+                                       )
+                                 }
+                              }}
                               whileHover={{ scale: 1.05 }}
                            >
                               <FaBell className="nav-icon" />
-                              {unreadNotifications > 0 && (
+                              {isLoading ? '' : unreadNotifications > 0 && (
                                  <span className="notification-badge">
                                     {unreadNotifications}
                                  </span>
@@ -158,7 +223,7 @@ const Navbar = ({tokenValidation}) => {
                            </motion.button>
 
                            <AnimatePresence>
-                              { showNotificationsDropdown ? isLoading ? '.....' :  (
+                              {showNotificationsDropdown && !isLoading && (
                                  <motion.ul
                                     className="dropdown-menu-nav show"
                                     initial={{ opacity: 0, y: 10 }}
@@ -166,44 +231,71 @@ const Navbar = ({tokenValidation}) => {
                                     exit={{ opacity: 0, y: -10 }}
                                  >
                                     <div className="dropdown-header">Notifications</div>
-                                    
-                                    {notifications.owners.map((noti) => (
-                                          <motion.li
+
+                                    {!notifications || !notifications.owners ? "" : notifications.owners.map((noti) => (
+                                       <motion.li
                                           key={noti.rel_id}
                                           className={`dropdown-item `}
                                           whileHover={{ x: 5 }}
-                                          >
+                                       >
                                           <div className="d-flex align-items-center">
                                              <FaRegBell className="me-2" />
                                              {noti.f_n} is invited you to be owner
                                              at {noti.company_name}
                                           </div>
-                                          <div>
-                                             <button style={{background: 'lightgreen', border: 'none'}}>Accecpt</button>
-                                             <button style={{background: 'red', border: 'none'}}>Cancel</button>
+                                          <div style={{ marginTop: "1rem" }}>
+                                             <button
+                                                className="btn btn-success btn-sm px-3"
+                                                onClick={() => toggleAcceptingInvite(noti.rel_id, noti.company_id)}
+                                                disabled={isAccepting}
+                                             >
+                                                {isAccepting ? (
+                                                   <div className="spinner-border spinner-border-sm" />
+                                                ) : (
+                                                   <><FaCheck className="me-1" />Accept invitation</>
+                                                )}
+                                             </button>
+                                             <button
+                                                className="btn btn-danger btn-sm px-3"
+                                                style={{ marginLeft: '2rem' }}
+                                                onClick={() => toggleRejectingInvite(noti.rel_id, noti.company_id)}  // 🔥 Reset only this user's invite state
+                                                disabled={isAccepting}
+                                             >
+                                                <FaTimes className="me-1" />Cancel
+                                             </button>
                                           </div>
                                        </motion.li>
                                     ))
                                     }
-                                    {/* {notifications.map(notification => (
+                                    {!notifications || !notifications.notifications ? "" : notifications.notifications.map((notification, i) => (
                                        <motion.li
                                           key={notification.id}
-                                          className={`dropdown-item ${!notification.read ? 'unread' : ''}`}
+                                          className={`dropdown-item ${!notification.is_seen ? 'unread' : ''}`}
                                           whileHover={{ x: 5 }}
                                        >
-                                          <div className="d-flex align-items-center">
+                                          <div className="d-flex align-items-center flex-wrap">
                                              <FaRegBell className="me-2" />
-                                             {notification.text}
+                                             {notification.content}
+                                          </div>
+                                          <div style={{ marginLeft: "0" }}>
+                                          <img
+                                             src={notification.user.avatar || 'https://th.bing.com/th/id/OIP.nYjTZMgoAAgpLUBL5ooqWwHaHa?rs=1&pid=ImgDetMain'}
+                                             alt={"Awdawd"}
+                                             className="rounded-circle me-1"
+                                             width="60"
+                                             height="60"
+                                          />
+                                          {`${notification.user.f_n} ${notification.user.l_n}`}
                                           </div>
                                        </motion.li>
-                                    ))} */}
-                                    {/* {unreadNotifications.length === 0 && (
+                                    ))}
+                                    {unreadNotifications.length === 0 && (
                                        <div className="dropdown-item text-muted">
                                           No new notifications
                                        </div>
-                                    )} */}
+                                    )}
                                  </motion.ul>
-                              ) : ''}
+                              )}
                            </AnimatePresence>
                         </li>
 
@@ -316,7 +408,7 @@ const Navbar = ({tokenValidation}) => {
                </motion.div>
             )}
          </div>
-      </motion.nav>
+      </motion.nav></>
    );
 };
 
