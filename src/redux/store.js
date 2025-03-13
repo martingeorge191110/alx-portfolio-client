@@ -4,7 +4,8 @@ import { combineReducers, createStore } from "redux"
 const USER = {
    token: localStorage.getItem("token") || null,
    loading: false,
-   info: null
+   info: null,
+   pay: false
 }
 
 
@@ -20,6 +21,10 @@ const UserReducer = (state = USER, action) => {
    if (action.type === 'IS_LOADING')
       return ({
          ...state, loading: action.payload
+      })
+   if (action.type === 'IS_PAYING')
+      return ({
+         ...state, pay: action.payload
       })
    return (state)
 }

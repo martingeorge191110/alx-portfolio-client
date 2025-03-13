@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import LoadingPage from '../loading/loading.page';
 import { IsLoadingAction } from '../../redux/actions';
 import { ChangeUserPicApi, UpdateToPremAccountApi, UserProfileApi } from '../../services/user';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import CreateCompanyModal from '../../components/registering_company/register.company';
 import LoadingSpinner from '../../components/loading_spinners/loading';
 
@@ -33,10 +33,13 @@ const profileSchema = Yup.object().shape({
 const Profile = () => {
 
    const navigate = useNavigate()
+   const location = useLocation();
+
 
    const token = useSelector(
       state => state.user.token
    )
+
    const dispatch = useDispatch()
    const [isLoading, setIsLoading] = useState(false)
    const [userDetails, setUserDetailes] = useState(null)
@@ -47,21 +50,10 @@ const Profile = () => {
    const [isUploading, setIsUploading] = useState(false);
    const [uploadError, setUploadError] = useState(null);
 
-   const [payment, setPayment] = useState(false)
+   const [payment, setPayment] = useState(location.state || false)
    const [loadingPremAccount, setLoadingPremAccount] = useState(false)
 
    const [registerCompPage, setRegisterCompPage] = useState(false)
-   // const [user, setUser] = useState({
-   //    id: 'user-123',
-   //    firstName: 'John',
-   //    lastName: 'Doe',
-   //    email: 'john@example.com',
-   //    nationality: 'United States',
-   //    avatar: 'https://th.bing.com/th/id/OIP.nYjTZMgoAAgpLUBL5ooqWwHaHa?rs=1&pid=ImgDetMain',
-   //    userType: 'investor',
-   //    isPaid: true,
-   //    subscriptionEnd: '2025-12-31',
-   // });
 
    const [companies] = useState([
       {
@@ -279,11 +271,11 @@ const Profile = () => {
                                  <FaRegClock className="me-2" />
                                  {`${userDetails.paid ? 'subscription Ends: ' + userDetails.subis_end_date : "No subscription"}`}
                               </Badge>
-                              {payment || userDetails.paid ? "" : <Button onClick={() => setPayment(true)} variant="outline-primary" className="w-20 mt-2" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              {payment || !userDetails.paid &&  <Button onClick={() => setPayment(true)} variant="outline-primary" className="w-20 mt-2" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                  <FaPlus style={{ marginRight: "5px" }} />
                                  Start new subiscription as an investor account!
                               </Button>}
-                              {!payment ? '' : <div><button
+                              {payment &&  <div><button
                                  className="btn btn-success btn-sm px-3"
                                  disabled={isUploading}
                                  onClick={() => submitPayment()}
@@ -297,7 +289,9 @@ const Profile = () => {
                               </button>
                               <button
                                  className="btn btn-danger btn-sm px-3"
-                                 onClick={() => setPayment(false)}
+                                 onClick={() => {
+                                    setPayment(false)
+                                 }}
                                  style={{marginLeft: '2rem', marginTop: "1rem"}}
                               >
                                  <FaTimes className="me-1" /> Cancel

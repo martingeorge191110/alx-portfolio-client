@@ -23,6 +23,10 @@ import {
 import { FiUsers, FiArrowUpRight, FiDownload } from 'react-icons/fi';
 import './company_dashboard.css';
 import { AiOutlineStock } from 'react-icons/ai';
+import { RetreivingDocsCompanyApi } from '../../services/company';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import UserNotificationCard from '../../components/notifications/notifications';
 
 const cardVariants = {
    hidden: { opacity: 0, y: 20 },
@@ -37,9 +41,44 @@ const cardVariants = {
 };
 
 const CompanyDashboardInvestor = ({ company, user }) => {
+   const token = useSelector(
+      state => state.user.token
+   )
+   const userId = useSelector(
+      state => state.user.info.id
+   )
+
+   const navigate = useNavigate()
+
    const [growthData, setGrowthData] = useState([]);
    const [isLoading, setIsLoading] = useState(true);
 
+
+   const [documents, setDocuments] = useState([])
+   const [isDocumentsLoaidng, setIsDocumentsLoaidng] = useState(true);
+
+   const [room, setRoom] = useState(null)
+
+   // Document loading section for retreving data
+   useEffect(() => {
+      RetreivingDocsCompanyApi({ token, company_id: company.id }).then(
+         res => {
+            if (res.success) {
+               setDocuments(res.documents)
+            }
+         }
+      ).catch(
+         err => {
+            // alert(err)
+            throw (err)
+         }
+      ).finally(
+         () => {
+            setIsDocumentsLoaidng(false)
+         }
+      )
+
+   }, [company.documents]);
    // Parse growth data from string to number
    useEffect(() => {
       const parsed = company.growthRates.map(rate => ({
@@ -61,7 +100,7 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                   <FaLock size={32} />
                   <h4>Upgrade to Premium</h4>
                   <p>Unlock full access to this content</p>
-                  <button className="premium-btn">
+                  <button onClick={() => navigate('/profile', { state: true })} className="premium-btn">
                      Upgrade Now <FiArrowUpRight />
                   </button>
                </div>
@@ -80,6 +119,7 @@ const CompanyDashboardInvestor = ({ company, user }) => {
          animate={{ opacity: 1 }}
          transition={{ duration: 0.5 }}
       >
+         {room ? <UserNotificationCard user={room} onClose={() => setRoom(null)}/> : ''}
          {/* Animated Header Section */}
          <motion.section
             className="company-header row g-4 align-items-center py-5"
@@ -213,7 +253,7 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: 0.2 + idx * 0.1 }}
                            >
-                              <div className="d-flex align-items-center p-3 bg-light rounded-3">
+                              <div className="d-flex align-items-center justify-content-center gap-2 p-3 bg-light rounded-3 flex-wrap">
                                  <img
                                     src={owner.avatar || 'https://th.bing.com/th/id/OIP.nYjTZMgoAAgpLUBL5ooqWwHaHa?rs=1&pid=ImgDetMain'}
                                     alt={owner.f_n}
@@ -230,6 +270,16 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                                        <FaUserTag className="me-2" />
                                        {owner.role}
                                     </small>
+                                 </div>
+                                 <div>
+                                    {userId === owner.id ? '' : <motion.button
+                                    className="btn btn-primary rounded-pill px-4 d-flex align-items-center"
+                                    onClick={() => setRoom(owner)}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                 >
+                                    Send Notification
+                                 </motion.button>}
                                  </div>
                               </div>
                            </motion.div>
@@ -254,126 +304,128 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                   <h3 className="mb-0">Financial Performance</h3>
                </div>
                <PaidContentWrapper>
-               <div className="card-body">
-                  {isLoading ? (
-                     <ChartSkeleton />
-                  ) : (
-                     <ResponsiveContainer width="100%" height={400}>
-                        <LineChart data={growthData}>
-                           <XAxis
-                              dataKey="year"
-                              tick={{ fill: '#6c757d' }}
-                              axisLine={{ stroke: '#dee2e6' }}
-                           />
-                           <YAxis
-                              tickFormatter={(value) => `$${value / 1e6}M`}
-                              tick={{ fill: '#6c757d' }}
-                              axisLine={{ stroke: '#dee2e6' }}
-                           />
-                           <Tooltip
-                              contentStyle={{
-                                 background: 'rgba(255, 255, 255, 0.95)',
-                                 border: 'none',
-                                 borderRadius: '0.5rem',
-                                 boxShadow: '0 4px 24px rgba(0, 0, 0, 0.1)'
-                              }}
-                           />
-                           <Line
-                              type="monotone"
-                              dataKey="profit"
-                              stroke="#6366f1"
-                              strokeWidth={2}
-                              dot={{ fill: '#6366f1', r: 4 }}
-                              activeDot={{ r: 8 }}
-                           />
-                           <Line
-                              type="monotone"
-                              dataKey="revenue"
-                              stroke="#10b981"
-                              strokeWidth={2}
-                              dot={{ fill: '#10b981', r: 4 }}
-                              activeDot={{ r: 8 }}
-                           />
-                        </LineChart>
-                     </ResponsiveContainer>
-                  )}
-               </div>
+                  <div className="card-body">
+                     {isLoading ? (
+                        <ChartSkeleton />
+                     ) : (
+                        <ResponsiveContainer width="100%" height={400}>
+                           <LineChart data={growthData}>
+                              <XAxis
+                                 dataKey="year"
+                                 tick={{ fill: '#6c757d' }}
+                                 axisLine={{ stroke: '#dee2e6' }}
+                              />
+                              <YAxis
+                                 tickFormatter={(value) => `$${value / 1e6}M`}
+                                 tick={{ fill: '#6c757d' }}
+                                 axisLine={{ stroke: '#dee2e6' }}
+                              />
+                              <Tooltip
+                                 contentStyle={{
+                                    background: 'rgba(255, 255, 255, 0.95)',
+                                    border: 'none',
+                                    borderRadius: '0.5rem',
+                                    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.1)'
+                                 }}
+                              />
+                              <Line
+                                 type="monotone"
+                                 dataKey="profit"
+                                 stroke="#6366f1"
+                                 strokeWidth={2}
+                                 dot={{ fill: '#6366f1', r: 4 }}
+                                 activeDot={{ r: 8 }}
+                              />
+                              <Line
+                                 type="monotone"
+                                 dataKey="revenue"
+                                 stroke="#10b981"
+                                 strokeWidth={2}
+                                 dot={{ fill: '#10b981', r: 4 }}
+                                 activeDot={{ r: 8 }}
+                              />
+                           </LineChart>
+                        </ResponsiveContainer>
+                     )}
+                  </div>
                </PaidContentWrapper>
-                  </motion.section>
+            </motion.section>
          }
          {/* </PaidContentWrapper> */}
 
          {/* Document Section with Shimmer Effect */}
-            <motion.section
-               className="card border-0 shadow-hover mb-5"
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               transition={{ delay: 0.6 }}
-            >
-               <div className="card-header bg-transparent d-flex align-items-center justify-content-between">
-                  <div className="d-flex align-items-center">
-                     <FaFilePdf className="fs-3 text-primary me-2" />
-                     <h3 className="mb-0">Corporate Documents</h3>
-                  </div>
-                  { user.isOwner && <motion.button
-                     className="btn btn-primary rounded-pill px-4 d-flex align-items-center"
-                     whileHover={{ scale: 1.05 }}
-                     whileTap={{ scale: 0.95 }}
-                  >
-                     <FaUpload className="me-2" />
-                     New Document
-                  </motion.button>}
+         <motion.section
+            className="card border-0 shadow-hover mb-5"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+         >
+            <div className="card-header bg-transparent d-flex align-items-center justify-content-between">
+               <div className="d-flex align-items-center">
+                  <FaFilePdf className="fs-3 text-primary me-2" />
+                  <h3 className="mb-0">Corporate Documents</h3>
                </div>
-               <PaidContentWrapper>
+               {user.isOwner && <motion.button
+                  className="btn btn-primary rounded-pill px-4 d-flex align-items-center"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+               >
+                  <FaUpload className="me-2" />
+                  New Document
+               </motion.button>}
+            </div>
+            <PaidContentWrapper>
                <div className="card-body">
                   <div className="row g-4">
-                     {company.documents.map((doc, idx) => (
-                        <motion.div
-                           key={doc.id}
-                           className="col-md-6 col-xl-4"
-                           initial={{ opacity: 0, y: 20 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           transition={{ delay: 0.2 + idx * 0.1 }}
-                        >
-                           <div className="document-card p-4 bg-light rounded-3 position-relative">
-                              <div className="shimmer-effect" />
-                              <FaRegFilePdf className="text-danger fs-2 mb-3" />
-                              <h5 className="mb-2">{user.paid && doc.title}</h5>
-                              <p className="text-muted small mb-3">{user.paid && doc.description}</p>
-                              <div className="d-flex justify-content-between align-items-center">
-                                 <small className="text-muted">
-                                    <FaCalendar className="me-1" />
-                                    {new Date().toLocaleDateString()}
-                                 </small>
-                                 <motion.a
-                                    href={user.paid && doc.fileUrl}
-                                    download
-                                    className="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                    whileHover={{ x: 5 }}
-                                 >
-                                    Download <FiDownload className="ms-1" />
-                                 </motion.a>
+                     {isDocumentsLoaidng && !documents ? <ChartSkeleton />
+                        :
+                        documents.map((doc, idx) => (
+                           <motion.div
+                              key={doc.id}
+                              className="col-md-6 col-xl-4"
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.2 + idx * 0.1 }}
+                           >
+                              <div className="document-card p-4 bg-light rounded-3 position-relative">
+                                 <div className="shimmer-effect" />
+                                 <FaRegFilePdf className="text-danger fs-2 mb-3" />
+                                 <h5 className="mb-2">{user.paid && doc.title}</h5>
+                                 <p className="text-muted small mb-3">{user.paid && doc.description}</p>
+                                 <div className="d-flex justify-content-between align-items-center">
+                                    <small className="text-muted">
+                                       <FaCalendar className="me-1" />
+                                       {new Date().toLocaleDateString()}
+                                    </small>
+                                    <motion.a
+                                       href={user.paid && doc.fileUrl}
+                                       download
+                                       className="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                       whileHover={{ x: 5 }}
+                                    >
+                                       Download <FiDownload className="ms-1" />
+                                    </motion.a>
+                                 </div>
                               </div>
-                           </div>
-                        </motion.div>
-                     ))}
+                           </motion.div>
+                        ))}
                   </div>
                </div>
-               </PaidContentWrapper>
-            </motion.section>
+            </PaidContentWrapper>
+         </motion.section>
 
          {/* Investment Section with Staggered Cards */}
-            <motion.section
-               className="card border-0 shadow-hover"
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               transition={{ delay: 0.8 }}
-            >
-               <div className="card-header bg-transparent d-flex align-items-center">
-                  <FaHandshake className="fs-3 text-primary me-2" />
-                  <h3 className="mb-0">Active Investments</h3>
-               </div>
-               <PaidContentWrapper>
+         <motion.section
+            className="card border-0 shadow-hover"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+         >
+            <div className="card-header bg-transparent d-flex align-items-center">
+               <FaHandshake className="fs-3 text-primary me-2" />
+               <h3 className="mb-0">Active Investments</h3>
+            </div>
+            <PaidContentWrapper>
                <div className="card-body">
                   <div className="row g-4">
                      {company.investments.map((investment, idx) => (
@@ -426,8 +478,8 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                      ))}
                   </div>
                </div>
-               </PaidContentWrapper>
-            </motion.section>
+            </PaidContentWrapper>
+         </motion.section>
       </motion.div>
    );
 };

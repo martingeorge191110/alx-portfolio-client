@@ -18,3 +18,9 @@ export const IsLoadingAction = (payload) => {
       type: "IS_LOADING", payload
    })
 }
+
+export const IsPayingAction = (payload) => {
+   return ({
+      type: "IS_PAYING", payload
+   })
+}

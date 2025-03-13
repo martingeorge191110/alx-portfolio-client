@@ -19,6 +19,7 @@ import { Alert } from 'react-bootstrap';
 import ProfitModal from '../../components/add_growth_rates/add.growth.rates';
 import DocumentCreator from '../../components/create_document/create.document';
 import UserSearchModal from '../../components/invite_owners/invite.owners';
+import UserNotificationCard from '../../components/notifications/notifications';
 
 const cardVariants = {
    hidden: { opacity: 0, y: 20 },
@@ -37,6 +38,12 @@ const CompanyDashboardOwner = ({ company, user }) => {
    const token = useSelector(
       state => state.user.token
    )
+
+   const userId = useSelector(
+      state => state.user.info.id
+   )
+
+   const [room, setRoom] = useState(null)
 
    const [growthData, setGrowthData] = useState([]);
    const [isGraphLoading, setIsGraphLoading] = useState(true);
@@ -155,6 +162,7 @@ const CompanyDashboardOwner = ({ company, user }) => {
          animate={{ opacity: 1 }}
          transition={{ duration: 0.5 }}
       >
+         {room ? <UserNotificationCard user={room} onClose={() => setRoom(null)}/> : ''}
          {/* Porift Model */}
          {openProfitModel ? <ProfitModal onClose={() => setOpenProfitModel(false)} company={company} /> : ''}
          {isInvite ? <UserSearchModal onClose={() => setIsInvite(false)} company={company}/> : ''}
@@ -363,7 +371,7 @@ const CompanyDashboardOwner = ({ company, user }) => {
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: 0.2 + idx * 0.1 }}
                            >
-                              <div className="d-flex align-items-center p-3 bg-light rounded-3">
+                              <div className="d-flex align-items-center p-3 bg-light rounded-3 flex-wrap gap-2 justify-content-center">
                                  <img
                                     src={owner.avatar || 'https://th.bing.com/th/id/OIP.nYjTZMgoAAgpLUBL5ooqWwHaHa?rs=1&pid=ImgDetMain'}
                                     alt={owner.f_n}
@@ -380,6 +388,17 @@ const CompanyDashboardOwner = ({ company, user }) => {
                                        <FaUserTag className="me-2" />
                                        {owner.role}
                                     </small>
+                                 </div>
+                                 <div>
+                                    {<motion.button
+                                    className="btn btn-primary rounded-pill px-4 d-flex align-items-center"
+                                    onClick={() => setRoom(owner)}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    disabled={userId === owner.id}
+                                 >
+                                    Send Notification
+                                 </motion.button>}
                                  </div>
                               </div>
                            </motion.div>

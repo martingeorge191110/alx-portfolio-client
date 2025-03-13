@@ -139,6 +139,36 @@ export const InvitOwnerApi = async ({token, user_id, company_id}) => {
    }
 }
 
+export const AcceptingInvitaionApi = async ({token, rel}) => {
+   try {
+      const response = await CompanyDataInfo.put(`/accept/${rel}`, {}, {
+         headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+         }
+      })
+
+      return (response.data)
+   } catch (err) {
+      return (err.response.data)
+   }
+}
+
+export const RejectingInvitaionApi = async ({token, rel}) => {
+   try {
+      const response = await CompanyDataInfo.delete(`/reject/${rel}`, {
+         headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+         }
+      })
+
+      return (response.data)
+   } catch (err) {
+      return (err.response.data)
+   }
+}
+
 export const RetreivingDocsCompanyApi = async ({token, company_id}) => {
    try {
       const response = await CompanyDataInfo.get(`/document/${company_id}`, {

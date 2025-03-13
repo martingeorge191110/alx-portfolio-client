@@ -30,6 +30,7 @@ const CompanyDashboard = () => {
          { year: 2022, profit: "7500000" },
          { year: 2023, profit: "12000000" }
       ],
+      documents: [],
       investments: [
          {
             id: "inv-1",
@@ -63,7 +64,6 @@ const CompanyDashboard = () => {
       dispatch(IsLoadingAction(true))
       CompanyBasicInfoApi({token, company_id}).then(
          res => {
-            console.log(res)
             setCompany({...company, ...res.data_result.company, owners: res.data_result.owners})
             setUser({...res.data_result.user, isOwner: res.data_result.isOwner})
          }
