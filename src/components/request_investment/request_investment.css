@@ -1,0 +1,136 @@
+.investment-card-backdrop {
+   position: fixed;
+   top: 0;
+   left: 0;
+   right: 0;
+   bottom: 0;
+   background: rgba(0, 0, 0, 0.5);
+   backdrop-filter: blur(8px);
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   z-index: 1000;
+}
+
+.investment-card-container {
+   background: rgba(255, 255, 255, 0.95);
+   border-radius: 20px;
+   width: 500px;
+   max-height: 90vh;
+   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+   overflow: hidden;
+   position: relative;
+}
+
+.investment-card-header {
+   padding: 1.5rem;
+   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+}
+
+.company-name-card {
+   background-color: transparent;
+   color: rgb(100, 100, 255);
+   font-weight: 700;
+   text-decoration: underline;
+}
+
+.close-btn {
+   background: none;
+   border: none;
+   font-size: 1.5rem;
+   color: #666;
+   transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+   color: #333;
+   transform: rotate(90deg);
+}
+
+.card-body {
+   padding: 2rem;
+   overflow-y: auto;
+   max-height: 60vh;
+}
+
+.input-icon {
+   margin-right: 8px;
+   color: #4a90e2;
+}
+
+.input-wrapper {
+   position: relative;
+   display: flex;
+   align-items: center;
+}
+
+.custom-input {
+   padding-left: 40px;
+   border-radius: 10px;
+   border: 2px solid #e0e0e0;
+   transition: all 0.3s ease;
+}
+
+.custom-input:focus {
+   border-color: #4a90e2;
+   box-shadow: 0 0 8px rgba(74, 144, 226, 0.25);
+}
+
+.input-suffix {
+   position: absolute;
+   right: 15px;
+   color: #666;
+   font-weight: 500;
+}
+
+.button-group {
+   display: flex;
+   gap: 1rem;
+   margin-top: 2rem;
+}
+
+.btn-submit {
+   background: linear-gradient(135deg, #4a90e2 0%, #2a2a72 100%);
+   color: white;
+   border: none;
+   padding: 12px 25px;
+   border-radius: 10px;
+   display: flex;
+   align-items: center;
+}
+
+.btn-cancel {
+   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+   color: #666;
+   border: 1px solid #ddd;
+   padding: 12px 25px;
+   border-radius: 10px;
+}
+
+.btn-submit:hover,
+.btn-cancel:hover {
+   transform: translateY(-1px);
+}
+
+/* Custom Scrollbar */
+.card-body::-webkit-scrollbar {
+   width: 8px;
+}
+
+.card-body::-webkit-scrollbar-track {
+   background: #f1f1f1;
+   border-radius: 4px;
+}
+
+.card-body::-webkit-scrollbar-thumb {
+   background: #888;
+   border-radius: 4px;
+}
+
+.card-body::-webkit-scrollbar-thumb:hover {
+   background: #666;
+}
