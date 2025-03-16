@@ -55,17 +55,6 @@ const Profile = () => {
 
    const [registerCompPage, setRegisterCompPage] = useState(false)
 
-   const [companies] = useState([
-      {
-         id: 'comp-001',
-         name: 'Tech Innovators',
-         industry: 'Technology',
-         location: 'Silicon Valley',
-         valuation: '$2.5B',
-         founded: 2012
-      },
-      // Add more companies...
-   ]);
 
    const [investments] = useState([
       {
@@ -367,9 +356,13 @@ const Profile = () => {
                                     >
                                        <Card>
                                           <Card.Body>
-                                             <div className="d-flex align-items-center mb-3">
+                                             <div style={{position: 'relative'}} className="d-flex align-items-center mb-3">
                                                 <FaIndustry className="me-2" />
                                                 <h5 className="mb-0">{company.name}</h5>
+                                                {company.updates > 0 && 
+                                                <span 
+                                                style={{position: 'absolute', right: '0', backgroundColor: 'darkred', borderRadius: '1rem', padding: '0.5rem', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                                                   {company.updates} Updates</span>}
                                              </div>
                                              <div className="company-details">
                                                 <p><FaGlobe className="me-2" />{company.location}</p>
@@ -409,8 +402,8 @@ const Profile = () => {
                                  </div>
                               </div>
                               <Row className="g-4">
-                                 {dealsList && dealsList.length > 0 ? dealsList.map((investment) => (
-                                    <Col key={investment.id} md={6} lg={4}>
+                                 {dealsList && dealsList.length > 0 ? dealsList.map((investment, i) => (
+                                    <Col key={investment.deal.id} md={6} lg={4}>
                                        <motion.div
                                           className="investment-card"
                                           whileHover={{ y: -5 }}
@@ -418,14 +411,14 @@ const Profile = () => {
                                           <Card>
                                              <Card.Body>
                                                 <div className="d-flex justify-content-between align-items-center">
-                                                   <h5>{investment.company}</h5>
-                                                   <Badge bg={investment.status === 'Active' ? 'success' : 'secondary'}>
-                                                      {investment.status}
+                                                   <h5>{investment.company.name}</h5>
+                                                   <Badge bg={investment.deal.deal_status === 'Active' ? 'success' : 'secondary'}>
+                                                      {investment.deal.deal_status}
                                                    </Badge>
                                                 </div>
                                                 <div className="investment-details mt-3">
-                                                   <p><FaWallet className="me-2" />{investment.amount}</p>
-                                                   <p><FaRegClock className="me-2" />{investment.date}</p>
+                                                   <p><FaWallet className="me-2" />{investment.deal.amount}</p>
+                                                   <p><FaRegClock className="me-2" />{investment.deal.created_at}</p>
                                                 </div>
                                              </Card.Body>
                                           </Card>

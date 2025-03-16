@@ -25,37 +25,37 @@ const CompanyDashboard = () => {
    const [user, setUser] = useState({});
    const [company, setCompany] = useState({
       growthRates: [
-         { year: 2020, profit: "1500000" },
-         { year: 2021, profit: "3500000" },
-         { year: 2022, profit: "7500000" },
-         { year: 2023, profit: "12000000" }
+         // { year: 2020, profit: "1500000" },
+         // { year: 2021, profit: "3500000" },
+         // { year: 2022, profit: "7500000" },
+         // { year: 2023, profit: "12000000" }
       ],
       documents: [],
       investments: [
-         {
-            id: "inv-1",
-            amount: "$1,000,000",
-            equity_percentage: 5.5,
-            deal_status: "Active",
-            user: {
-               id: "user-1",
-               f_n: "Michael",
-               l_n: "Brown",
-               avatar: "https://via.placeholder.com/80"
-            }
-         },
-         {
-            id: "inv-2",
-            amount: "$500,000",
-            equity_percentage: 2.8,
-            deal_status: "Pending",
-            user: {
-               id: "user-2",
-               f_n: "Emily",
-               l_n: "Davis",
-               avatar: "https://via.placeholder.com/80"
-            }
-         }
+         // {
+         //    id: "inv-1",
+         //    amount: "$1,000,000",
+         //    equity_percentage: 5.5,
+         //    deal_status: "Active",
+         //    user: {
+         //       id: "user-1",
+         //       f_n: "Michael",
+         //       l_n: "Brown",
+         //       avatar: "https://via.placeholder.com/80"
+         //    }
+         // },
+         // {
+         //    id: "inv-2",
+         //    amount: "$500,000",
+         //    equity_percentage: 2.8,
+         //    deal_status: "Pending",
+         //    user: {
+         //       id: "user-2",
+         //       f_n: "Emily",
+         //       l_n: "Davis",
+         //       avatar: "https://via.placeholder.com/80"
+         //    }
+         // }
       ]
    });
 
@@ -64,7 +64,7 @@ const CompanyDashboard = () => {
       dispatch(IsLoadingAction(true))
       CompanyBasicInfoApi({token, company_id}).then(
          res => {
-            setCompany({...company, ...res.data_result.company, owners: res.data_result.owners})
+            setCompany({...company, ...res.data_result.company, owners: res.data_result.owners, investments: res.data_result.investments})
             setUser({...res.data_result.user, isOwner: res.data_result.isOwner})
          }
       ).catch(

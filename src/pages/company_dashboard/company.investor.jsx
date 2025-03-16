@@ -23,10 +23,12 @@ import {
 import { FiUsers, FiArrowUpRight, FiDownload } from 'react-icons/fi';
 import './company_dashboard.css';
 import { AiOutlineStock } from 'react-icons/ai';
-import { RetreivingDocsCompanyApi } from '../../services/company';
+import { CompanyGrowthRatesInfoApi, RetreivingDocsCompanyApi } from '../../services/company';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import UserNotificationCard from '../../components/notifications/notifications';
+import RequestingInvestmentCard from '../../components/request_investment/request.investment';
+import NothingFound from '../../components/nothing/nothing';
 
 const cardVariants = {
    hidden: { opacity: 0, y: 20 },
@@ -51,13 +53,15 @@ const CompanyDashboardInvestor = ({ company, user }) => {
    const navigate = useNavigate()
 
    const [growthData, setGrowthData] = useState([]);
-   const [isLoading, setIsLoading] = useState(true);
+   const [isGraphLoading, setisGraphLoading] = useState(true);
 
 
    const [documents, setDocuments] = useState([])
    const [isDocumentsLoaidng, setIsDocumentsLoaidng] = useState(true);
 
    const [room, setRoom] = useState(null)
+
+   const [investmentCard, setInvestmentCard] = useState(false)
 
    // Document loading section for retreving data
    useEffect(() => {
@@ -79,15 +83,28 @@ const CompanyDashboardInvestor = ({ company, user }) => {
       )
 
    }, [company.documents]);
-   // Parse growth data from string to number
+
+
    useEffect(() => {
-      const parsed = company.growthRates.map(rate => ({
-         year: rate.year,
-         profit: parseFloat(rate.profit),
-         revenue: parseFloat(rate.revenue)
-      }));
-      setGrowthData(parsed);
-      setIsLoading(false);
+      CompanyGrowthRatesInfoApi({ token, company_id: company.id }).then(
+         res => {
+            const parsed = res.growthRates.map(rate => ({
+               year: rate.year,
+               profit: parseFloat(rate.profit),
+            }));
+            // console.log(parsed)
+            setGrowthData(parsed)
+         }
+      ).catch(
+         err => {
+            throw (err)
+         }
+      ).finally(
+         () => {
+            setisGraphLoading(false)
+         }
+      )
+
    }, [company.growthRates]);
 
    const PaidContentWrapper = ({ children, required = true }) => {
@@ -119,7 +136,8 @@ const CompanyDashboardInvestor = ({ company, user }) => {
          animate={{ opacity: 1 }}
          transition={{ duration: 0.5 }}
       >
-         {room ? <UserNotificationCard user={room} onClose={() => setRoom(null)}/> : ''}
+         {room ? <UserNotificationCard user={room} onClose={() => setRoom(null)} /> : ''}
+         {investmentCard ? <RequestingInvestmentCard company={company} onClose={() => setInvestmentCard(false)} /> : ''}
          {/* Animated Header Section */}
          <motion.section
             className="company-header row g-4 align-items-center py-5"
@@ -184,6 +202,20 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                   </div>
                </motion.div>
             </div>
+            {
+               <motion.button
+                  className="btn btn-primary rounded-pill px-4 d-flex align-items-center"
+                  onClick={() => {
+                     setInvestmentCard(true)
+                  }}
+                  style={{ alignItems: "center", justifyContent: "center" }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  disabled={!user.paid}
+               >
+                  Request an Investment Deal
+               </motion.button>
+            }
          </motion.section>
 
          {/* Staggered Info Grid */}
@@ -208,14 +240,12 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                         <InfoItem
                            icon={FaPhone}
                            label="Phone"
-                           value={company.contact_number}
-                           isProtected
+                           value={company['contact number']}
                         />
                         <InfoItem
                            icon={FaEnvelope}
                            label="Phone"
-                           value={company.contact_number}
-                           isProtected
+                           value={company['contact email']}
                         />
                         {company.web_link && (
                            <InfoItem
@@ -273,13 +303,13 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                                  </div>
                                  <div>
                                     {userId === owner.id ? '' : <motion.button
-                                    className="btn btn-primary rounded-pill px-4 d-flex align-items-center"
-                                    onClick={() => setRoom(owner)}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                 >
-                                    Send Notification
-                                 </motion.button>}
+                                       className="btn btn-primary rounded-pill px-4 d-flex align-items-center"
+                                       onClick={() => setRoom(owner)}
+                                       whileHover={{ scale: 1.05 }}
+                                       whileTap={{ scale: 0.95 }}
+                                    >
+                                       Send Notification
+                                    </motion.button>}
                                  </div>
                               </div>
                            </motion.div>
@@ -305,9 +335,9 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                </div>
                <PaidContentWrapper>
                   <div className="card-body">
-                     {isLoading ? (
+                     {isGraphLoading ? (
                         <ChartSkeleton />
-                     ) : (
+                     ) : growthData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={400}>
                            <LineChart data={growthData}>
                               <XAxis
@@ -346,6 +376,16 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                               />
                            </LineChart>
                         </ResponsiveContainer>
+                     ) : (
+                        <motion.div
+                           className="empty-state"
+                           initial={{ scale: 0.9 }}
+                           animate={{ scale: 1 }}
+                        >
+                           <FaChartArea className="empty-icon" />
+                           <h4>No Growth Data Available</h4>
+                           <p>This company hasn't reported any financial growth data yet</p>
+                        </motion.div>
                      )}
                   </div>
                </PaidContentWrapper>
@@ -374,7 +414,7 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                   New Document
                </motion.button>}
             </div>
-            <PaidContentWrapper>
+            {documents && documents.length > 0 ? <PaidContentWrapper>
                <div className="card-body">
                   <div className="row g-4">
                      {isDocumentsLoaidng && !documents ? <ChartSkeleton />
@@ -411,7 +451,7 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                         ))}
                   </div>
                </div>
-            </PaidContentWrapper>
+            </PaidContentWrapper> : <NothingFound message='No Company Documents available till now!' />}
          </motion.section>
 
          {/* Investment Section with Staggered Cards */}
@@ -428,7 +468,7 @@ const CompanyDashboardInvestor = ({ company, user }) => {
             <PaidContentWrapper>
                <div className="card-body">
                   <div className="row g-4">
-                     {company.investments.map((investment, idx) => (
+                     {company.investments.length > 0 ? company.investments.map((investment, idx) => (
                         <motion.div
                            key={investment.id}
                            className="col-md-6 col-lg-4"
@@ -475,7 +515,7 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                               </div>
                            </div>
                         </motion.div>
-                     ))}
+                     )) : <NothingFound message='No investment deals till now!'/>}
                   </div>
                </div>
             </PaidContentWrapper>

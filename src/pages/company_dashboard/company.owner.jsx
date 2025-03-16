@@ -20,6 +20,7 @@ import ProfitModal from '../../components/add_growth_rates/add.growth.rates';
 import DocumentCreator from '../../components/create_document/create.document';
 import UserSearchModal from '../../components/invite_owners/invite.owners';
 import UserNotificationCard from '../../components/notifications/notifications';
+import NothingFound from '../../components/nothing/nothing';
 
 const cardVariants = {
    hidden: { opacity: 0, y: 20 },
@@ -162,10 +163,10 @@ const CompanyDashboardOwner = ({ company, user }) => {
          animate={{ opacity: 1 }}
          transition={{ duration: 0.5 }}
       >
-         {room ? <UserNotificationCard user={room} onClose={() => setRoom(null)}/> : ''}
+         {room ? <UserNotificationCard user={room} onClose={() => setRoom(null)} /> : ''}
          {/* Porift Model */}
          {openProfitModel ? <ProfitModal onClose={() => setOpenProfitModel(false)} company={company} /> : ''}
-         {isInvite ? <UserSearchModal onClose={() => setIsInvite(false)} company={company}/> : ''}
+         {isInvite ? <UserSearchModal onClose={() => setIsInvite(false)} company={company} /> : ''}
          {isDocumentCreate ? <DocumentCreator onClose={() => setIsDocumentCreate(false)} setDocuments={setDocuments} documents={documents} company={company} /> : ''}
          {/* Animated Header Section */}
          <motion.section
@@ -348,9 +349,9 @@ const CompanyDashboardOwner = ({ company, user }) => {
                variants={cardVariants}
             >
                <div className="card h-100 border-0 shadow-hover">
-                  <div style={{display: "flex", justifyContent: 'space-between'}} className="card-header bg-transparent d-flex align-items-center">
-                     <div style={{display: 'flex', alignItems: 'center'}}><FaUserFriends className="fs-3 text-primary me-2" />
-                     <h3 className="mb-0">Ownership Structure</h3></div>
+                  <div style={{ display: "flex", justifyContent: 'space-between' }} className="card-header bg-transparent d-flex align-items-center">
+                     <div style={{ display: 'flex', alignItems: 'center' }}><FaUserFriends className="fs-3 text-primary me-2" />
+                        <h3 className="mb-0">Ownership Structure</h3></div>
                      <motion.button
                         onClick={() => setIsInvite(true)}
                         className="btn btn-primary rounded-pill px-4 d-flex align-items-center"
@@ -391,14 +392,14 @@ const CompanyDashboardOwner = ({ company, user }) => {
                                  </div>
                                  <div>
                                     {<motion.button
-                                    className="btn btn-primary rounded-pill px-4 d-flex align-items-center"
-                                    onClick={() => setRoom(owner)}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    disabled={userId === owner.id}
-                                 >
-                                    Send Notification
-                                 </motion.button>}
+                                       className="btn btn-primary rounded-pill px-4 d-flex align-items-center"
+                                       onClick={() => setRoom(owner)}
+                                       whileHover={{ scale: 1.05 }}
+                                       whileTap={{ scale: 0.95 }}
+                                       disabled={userId === owner.id}
+                                    >
+                                       Send Notification
+                                    </motion.button>}
                                  </div>
                               </div>
                            </motion.div>
@@ -500,38 +501,40 @@ const CompanyDashboardOwner = ({ company, user }) => {
                   New Document
                </motion.button>}
             </div>
-            <div className="card-body">
+            <div className="card-body" >
                <div className="row g-4">
-                  {isDocumentsLoaidng && !documents ? <ChartSkeleton /> : documents.map((doc, idx) => (
-                     <motion.div
-                        key={doc.id}
-                        className="col-md-6 col-xl-4"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 + idx * 0.1 }}
-                     >
-                        <div className="document-card p-4 bg-light rounded-3 position-relative">
-                           <div className="shimmer-effect" />
-                           <FaRegFilePdf className="text-danger fs-2 mb-3" />
-                           <h5 className="mb-2">{doc.title}</h5>
-                           <p className="text-muted small mb-3">{doc.description}</p>
-                           <div className="d-flex justify-content-between align-items-center">
-                              <small className="text-muted">
-                                 <FaCalendar className="me-1" />
-                                 {new Date().toLocaleDateString()}
-                              </small>
+                  {isDocumentsLoaidng && !documents ? <ChartSkeleton /> :
+                     !isDocumentsLoaidng && (documents && documents.length < 1) ? <NothingFound message='No Documents found!' /> : documents.map((doc, idx) => (
+                        <motion.div
+                           key={doc.id}
+                           className="col-md-6 col-xl-4"
+                           initial={{ opacity: 0, y: 20 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           transition={{ delay: 0.2 + idx * 0.1 }}
+                           style={{display: 'flex', flexDirection: 'column'}}
+                        >
+                           <div className="document-card p-4 bg-light rounded-3 position-relative">
+                              <div className="shimmer-effect" />
+                              <FaRegFilePdf className="text-danger fs-2" />
+                              <h5 className="mb-2">{doc.title}</h5>
+                              <p className="text-muted small m-0">{doc.description}</p>
+                              <div className="d-flex justify-content-between align-items-center">
+                                 <small className="text-muted ">
+                                    <FaCalendar className="me-2" />
+                                    {new Date().toLocaleDateString()}
+                                 </small>
+                              </div>
                               <motion.a
-                                 href={doc.fileUrl}
-                                 download
-                                 className="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                 whileHover={{ x: 5 }}
-                              >
-                                 Download <FiDownload className="ms-1" />
-                              </motion.a>
+                                    href={doc.fileUrl}
+                                    download
+                                    className="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                    whileHover={{ x: 5 }}
+                                 >
+                                    Download <FiDownload className="ms-1" />
+                                 </motion.a>
                            </div>
-                        </div>
-                     </motion.div>
-                  ))}
+                        </motion.div>
+                     ))}
                </div>
             </div>
          </motion.section>
@@ -548,7 +551,7 @@ const CompanyDashboardOwner = ({ company, user }) => {
                <h3 className="mb-0">Active Investments</h3>
             </div>
             <div className="card-body">
-               <div className="row g-4">
+               {company.investments && company.investments.length > 0 ? <div className="row g-4">
                   {company.investments.map((investment, idx) => (
                      <motion.div
                         key={investment.id}
@@ -594,10 +597,28 @@ const CompanyDashboardOwner = ({ company, user }) => {
                                  </div>
                               </div>
                            </div>
+                           { investment.deal_status === "Pending" ?
+                              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem" }}>
+                                 <button
+                                    className="btn btn-success btn-sm px-3"
+                                 >
+                                    {isUploading ? (
+                                       <div className="spinner-border spinner-border-sm" />
+                                    ) : (
+                                       <><FaCheck className="me-1" />Accept the Deal</>
+                                    )}
+                                 </button>
+                                 <button
+                                    className="btn btn-danger btn-sm px-3"
+                                 >
+                                    <FaTimes className="me-1" /> Reject
+                                 </button>
+                              </div> : ""
+                           }
                         </div>
                      </motion.div>
                   ))}
-               </div>
+               </div> : <NothingFound message='No Investment deals in this company till now!' />}
             </div>
          </motion.section>
       </motion.div>
