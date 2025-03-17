@@ -405,9 +405,14 @@
    gap: 0.5rem;
 }
 
-.status-badge.Active {
+.status-badge.Accepted {
    background: rgba(16, 185, 129, 0.15);
    color: #10b981;
+}
+
+.status-badge.Rejected {
+   background: rgba(255, 34, 0, 0.15);
+   color: #c61c1c;
 }
 
 .status-badge.Pending {

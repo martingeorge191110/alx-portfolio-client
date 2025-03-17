@@ -21,6 +21,8 @@ import DocumentCreator from '../../components/create_document/create.document';
 import UserSearchModal from '../../components/invite_owners/invite.owners';
 import UserNotificationCard from '../../components/notifications/notifications';
 import NothingFound from '../../components/nothing/nothing';
+import { RespondInvestment } from '../../services/investment';
+import LoadingSpinner from '../../components/loading_spinners/loading';
 
 const cardVariants = {
    hidden: { opacity: 0, y: 20 },
@@ -156,6 +158,50 @@ const CompanyDashboardOwner = ({ company, user }) => {
       setUploadError(null);
    };
 
+   const [acceptingInvestment, setAcceptingInvestment] = useState(false)
+
+   const confirmInvestment = async (deal_id) => {
+      setAcceptingInvestment(true)
+      try {
+         const response = await RespondInvestment({ token, deal_id, status: 'Accepted' })
+
+         if (response.success) {
+            for (const ele of company.investments) {
+               if (ele.deal_id === deal_id) {
+                  ele.deal_status = response.updated_deal.deal_status
+               }
+            }
+         }
+         alert(response.message)
+      } catch (err) {
+         alert(err)
+      } finally {
+         setAcceptingInvestment(false)
+      }
+   }
+
+   const [rejectingInvestment, setRejectingInvestment] = useState(false)
+
+   const rejectInvestment = async (deal_id) => {
+      setRejectingInvestment(true)
+      try {
+         const response = await RespondInvestment({ token, deal_id, status: 'Rejected' })
+
+         if (response.success) {
+            for (const ele of company.investments) {
+               if (ele.deal_id === deal_id) {
+                  ele.deal_status = response.updated_deal.deal_status
+               }
+            }
+         }
+         alert(response.message)
+      } catch (err) {
+         alert(err)
+      } finally {
+         setRejectingInvestment(false)
+      }
+   }
+
    return (
       <motion.div
          className="company-dashboard container-fluid"
@@ -164,6 +210,7 @@ const CompanyDashboardOwner = ({ company, user }) => {
          transition={{ duration: 0.5 }}
       >
          {room ? <UserNotificationCard user={room} onClose={() => setRoom(null)} /> : ''}
+         {acceptingInvestment || rejectingInvestment ? <LoadingSpinner message='Updateing investment status' /> : ''}
          {/* Porift Model */}
          {openProfitModel ? <ProfitModal onClose={() => setOpenProfitModel(false)} company={company} /> : ''}
          {isInvite ? <UserSearchModal onClose={() => setIsInvite(false)} company={company} /> : ''}
@@ -511,7 +558,7 @@ const CompanyDashboardOwner = ({ company, user }) => {
                            initial={{ opacity: 0, y: 20 }}
                            animate={{ opacity: 1, y: 0 }}
                            transition={{ delay: 0.2 + idx * 0.1 }}
-                           style={{display: 'flex', flexDirection: 'column'}}
+                           style={{ display: 'flex', flexDirection: 'column' }}
                         >
                            <div className="document-card p-4 bg-light rounded-3 position-relative">
                               <div className="shimmer-effect" />
@@ -525,13 +572,13 @@ const CompanyDashboardOwner = ({ company, user }) => {
                                  </small>
                               </div>
                               <motion.a
-                                    href={doc.fileUrl}
-                                    download
-                                    className="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                    whileHover={{ x: 5 }}
-                                 >
-                                    Download <FiDownload className="ms-1" />
-                                 </motion.a>
+                                 href={doc.fileUrl}
+                                 download
+                                 className="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                 whileHover={{ x: 5 }}
+                              >
+                                 Download <FiDownload className="ms-1" />
+                              </motion.a>
                            </div>
                         </motion.div>
                      ))}
@@ -554,7 +601,7 @@ const CompanyDashboardOwner = ({ company, user }) => {
                {company.investments && company.investments.length > 0 ? <div className="row g-4">
                   {company.investments.map((investment, idx) => (
                      <motion.div
-                        key={investment.id}
+                        key={investment.deal_id}
                         className="col-md-6 col-lg-4"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -597,12 +644,13 @@ const CompanyDashboardOwner = ({ company, user }) => {
                                  </div>
                               </div>
                            </div>
-                           { investment.deal_status === "Pending" ?
+                           {investment.deal_status === "Pending" ?
                               <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem" }}>
                                  <button
                                     className="btn btn-success btn-sm px-3"
+                                    onClick={() => confirmInvestment(investment.deal_id)}
                                  >
-                                    {isUploading ? (
+                                    {acceptingInvestment ? (
                                        <div className="spinner-border spinner-border-sm" />
                                     ) : (
                                        <><FaCheck className="me-1" />Accept the Deal</>
@@ -610,8 +658,14 @@ const CompanyDashboardOwner = ({ company, user }) => {
                                  </button>
                                  <button
                                     className="btn btn-danger btn-sm px-3"
+                                    onClick={() => rejectInvestment(investment.deal_id)}
                                  >
-                                    <FaTimes className="me-1" /> Reject
+                                    {rejectingInvestment ? (
+                                       <div className="spinner-border spinner-border-sm" />
+                                    ) : (
+                                       <><FaTimes className="me-1" /> Reject</>
+                                    )
+                                    }
                                  </button>
                               </div> : ""
                            }
