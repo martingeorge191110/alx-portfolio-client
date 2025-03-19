@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { FaEnvelope, FaArrowLeft } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaArrowLeft } from 'react-icons/fa';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import './auth.css';
 import { SendCodeApi } from '../../services/auth';
@@ -9,11 +9,14 @@ import { SendCodeApi } from '../../services/auth';
 
 
 const ForgotPassword = () => {
+   const navigate = useNavigate()
+
    const [email, setEmail] = useState('');
    const [error, setError] = useState('');
    const [isSubmitted, setIsSubmitted] = useState(false);
 
    const handleSubmit = async () => {
+      setError('')
       if (!email.match(/^\S+@\S+\.\S+$/)) {
          setError('Please enter a valid email address');
          return;
@@ -25,8 +28,13 @@ const ForgotPassword = () => {
    
          const response = await SendCodeApi({email})
 
-         console.log(response)
+         if (response.success) {
+            navigate('/check-password-code')
+         } else {
+            setError(response.message)
+         }
       } catch (err) {
+         setError(err)
          throw (err)
       }
       setIsSubmitted(false)

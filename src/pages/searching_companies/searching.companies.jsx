@@ -1,10 +1,9 @@
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
    FaSearch, FaFilter, FaIndustry, FaMapMarkerAlt, FaCalendarAlt,
-   FaDollarSign, FaChartLine, FaEye, FaSync, FaTimes, FaStar,
+   FaDollarSign, FaChartLine, FaEye, FaSync,
    FaSort,
-   FaArrowUp,
    FaArrowDown,
    FaListOl
 } from 'react-icons/fa';
@@ -12,7 +11,6 @@ import { Container, Row, Col, Form, Button, Card } from 'react-bootstrap';
 import './searching_companies.css';
 import { CompanySearcByNameApi } from '../../services/company';
 import { useSelector } from 'react-redux';
-import { responsivePropType } from 'react-bootstrap/esm/createUtilityClasses';
 import LoadingSpinner from '../../components/loading_spinners/loading';
 import { useNavigate } from 'react-router-dom';
 

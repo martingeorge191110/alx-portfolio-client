@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import Select from 'react-select';
-import { FaUser, FaEnvelope, FaLock, FaArrowRight, FaSignInAlt, FaCity } from 'react-icons/fa';
+import { FaArrowRight, FaSignInAlt } from 'react-icons/fa';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import './auth.css';
 import { RegisterApi } from '../../services/auth';

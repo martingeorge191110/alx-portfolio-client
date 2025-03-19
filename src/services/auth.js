@@ -50,3 +50,35 @@ export const SendCodeApi = async ({email}) => {
       return (err.response.data)
    }
 }
+
+export const CheckCodeApi = async ({email, code}) => {
+   try {
+      const response = await UserAuth.post("/reset-pass", {
+         email, code
+      },{
+         headers: {
+            "Content-Type": "application/json"
+         }
+      })
+
+      return (response.data)
+   } catch (err) {
+      return (err.response.data)
+   }
+}
+
+export const CreateNewPassowrdApi = async ({email, password, confirm_password}) => {
+   try {
+      const response = await UserAuth.put("/reset-pass", {
+         email, password, confirm_password
+      },{
+         headers: {
+            "Content-Type": "application/json"
+         }
+      })
+
+      return (response.data)
+   } catch (err) {
+      return (err.response.data)
+   }
+}

@@ -18,7 +18,8 @@ import {
    FaCertificate,
    FaClock,
    FaPercent,
-   FaBalanceScale
+   FaBalanceScale,
+   FaChartArea
 } from 'react-icons/fa';
 import { FiUsers, FiArrowUpRight, FiDownload } from 'react-icons/fi';
 import './company_dashboard.css';
@@ -414,8 +415,8 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                   New Document
                </motion.button>}
             </div>
-            {documents && documents.length > 0 ? <PaidContentWrapper>
-               <div className="card-body">
+            <PaidContentWrapper>
+               { documents && documents.length > 0 ? <div className="card-body">
                   <div className="row g-4">
                      {isDocumentsLoaidng && !documents ? <ChartSkeleton />
                         :
@@ -450,8 +451,8 @@ const CompanyDashboardInvestor = ({ company, user }) => {
                            </motion.div>
                         ))}
                   </div>
-               </div>
-            </PaidContentWrapper> : <NothingFound message='No Company Documents available till now!' />}
+               </div> : <NothingFound message='No Company Documents available till now!' /> }
+            </PaidContentWrapper>
          </motion.section>
 
          {/* Investment Section with Staggered Cards */}

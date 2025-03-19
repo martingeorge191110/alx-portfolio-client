@@ -84,7 +84,6 @@ const Navbar = ({ tokenValidation }) => {
    useLayoutEffect(() => {
       RetreiveAllNotificationsApi({ token, page: page }).then(
          res => {
-            console.log(res)
             if (res.success) {
                let unreadNotif = 0
                res.notifications.forEach(ele => {
@@ -159,7 +158,7 @@ const Navbar = ({ tokenValidation }) => {
                   whileHover={{ scale: 1.05 }}
                >
                   <FaHome className="brand-icon" />
-                  <span>WebSolutions</span>
+                  <span>InvestLink</span>
                </motion.a>
 
                {/* Mobile Toggle */}

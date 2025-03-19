@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { FaEnvelope, FaLock, FaArrowRight, FaUserPlus } from 'react-icons/fa';
+import { FaArrowRight } from 'react-icons/fa';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import './auth.css'
 import { LoginApi } from '../../services/auth';
 import { useDispatch } from 'react-redux';
 import { AuthAction } from '../../redux/actions';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 
 const Login = () => {

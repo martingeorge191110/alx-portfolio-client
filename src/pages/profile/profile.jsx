@@ -141,7 +141,6 @@ const Profile = () => {
       try {
          const response = await UpdateToPremAccountApi({token})
 
-         console.log(response)
          if (response.success)
             window.location.href = response.url;
          else
